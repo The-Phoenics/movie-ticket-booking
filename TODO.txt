@@ -1,0 +1,5 @@
+1. Initialize project - two apps: theatre facing (B2B), consumer facing (B2C)
+2. Set up postgres and create prisma schema
+3. Work on B2B side
+
+4. Start working on B2C side

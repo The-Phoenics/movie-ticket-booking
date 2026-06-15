@@ -1,0 +1,24 @@
+{
+  "name": "@movie-ticket-booking/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@movie-ticket-booking/db": "workspace:*",
+    "@movie-ticket-booking/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@movie-ticket-booking/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}
