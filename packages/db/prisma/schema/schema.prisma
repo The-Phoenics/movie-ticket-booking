@@ -83,7 +83,9 @@ model Customer {
   id     String @id
   name   String
   userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
+
+  ticket Ticket[]
+  user   User     @relation(fields: [userId], references: [id])
 }
 
 model Theatre {
@@ -140,9 +142,21 @@ model TheatreMovieSeat {
   status          SEAT_STATUS @default(AVAILABLE)
   reservedAt      DateTime
   reservationTime Int
+  price           Int
 
   seat                        Seat                         @relation(fields: [seatId], references: [id])
   theatreMovieSeatReservation TheatreMovieSeatReservation?
+  ticket                      Ticket?
+}
+
+model Ticket {
+  id                 String   @id
+  theatreMovieSeatId String   @unique
+  createdAt          DateTime @default(now())
+  customerId         String
+
+  customer         Customer         @relation(fields: [customerId], references: [id])
+  theatreMovieSeat TheatreMovieSeat @relation(fields: [theatreMovieSeatId], references: [id])
 }
 
 model TheatreMovieSeatReservation {
