@@ -1,11 +1,11 @@
 {
-  "name": "server",
+  "name": "customer-server",
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
     "build": "tsdown",
     "check-types": "tsc -b",
-    "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
+    "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile customer-server",
     "dev": "bun run --hot src/index.ts",
     "start": "bun run dist/index.mjs"
   },

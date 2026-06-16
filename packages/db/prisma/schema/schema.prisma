@@ -1,10 +1,155 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated"
+  provider     = "prisma-client"
+  output       = "../generated"
   moduleFormat = "esm"
-  runtime = "bun"
+  runtime      = "bun"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model User {
+  id            String      @id
+  email         String
+  emailVerified Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  theatreId     String      @unique
+  role          ProfileType @default(CUSTOMER)
+  customer      Customer?
+  theatre       Theatre?
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+enum ProfileType {
+  CUSTOMER
+  BUSINESS
+}
+
+model Customer {
+  id     String @id
+  name   String
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model Theatre {
+  id           String         @id
+  userId       String         @unique
+  address      String
+  city         String
+  country      String
+  theateMovies TheatreMovie[]
+  user         User           @relation(fields: [userId], references: [id])
+}
+
+model Movie {
+  id           String         @id
+  title        String
+  description  String
+  rating       Int
+  crew         Json           @default("{}")
+  theateMovies TheatreMovie[]
+}
+
+model TheatreMovie {
+  id        String   @id
+  theatreId String   @unique
+  movieId   String   @unique
+  startTime DateTime
+  endTime   DateTime
+  theatre   Theatre  @relation(fields: [theatreId], references: [id])
+  movie     Movie    @relation(fields: [movieId], references: [id])
+}
+
+model Seat {
+  id                String            @id
+  theatreId         String            @unique
+  row               String
+  col               String
+  threatreMovieSeat TheatreMovieSeat?
+}
+
+// enum SEAT_CLASS {
+//   CLASSIC
+//   PREMIUM
+// }
+
+enum SEAT_STATUS {
+  AVAILABLE
+  SOLD
+}
+
+model TheatreMovieSeat {
+  id              String      @id
+  theatreMovieId  String      @unique
+  seatId          String      @unique
+  status          SEAT_STATUS @default(AVAILABLE)
+  reservedAt      DateTime
+  reservationTime Int
+
+  seat                        Seat                         @relation(fields: [seatId], references: [id])
+  theatreMovieSeatReservation TheatreMovieSeatReservation?
+}
+
+model TheatreMovieSeatReservation {
+  id                 String   @id
+  theatreMovieSeatId String   @unique
+  reservedAt         DateTime
+  reservationTime    Int
+
+  theatreMovieSeat TheatreMovieSeat @relation(fields: [theatreMovieSeatId], references: [id])
 }
