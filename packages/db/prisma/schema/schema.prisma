@@ -91,10 +91,12 @@ model Customer {
 model Theatre {
   id           String         @id @default(cuid())
   userId       String         @unique
+  title        String
   address      String
   city         String
   country      String
   theateMovies TheatreMovie[]
+  seat         Seat[]
   user         User           @relation(fields: [userId], references: [id])
 }
 
@@ -119,10 +121,13 @@ model TheatreMovie {
 
 model Seat {
   id                String            @id @default(cuid())
-  theatreId         String            @unique
+  theatreId         String
   row               String
-  col               String
+  col               Int
+  theatre           Theatre           @relation(fields: [theatreId], references: [id])
   threatreMovieSeat TheatreMovieSeat?
+
+  @@unique([row, col])
 }
 
 // enum SEAT_CLASS {
