@@ -3,6 +3,8 @@ import { env } from "@movie-ticket-booking/env/server";
 import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
 import express from "express";
+import apiRouter from "./routes";
+import { apiErrorHandler } from "./middlewares";
 
 const app = express();
 
@@ -19,7 +21,11 @@ app.all("/api/auth{/*path}", toNodeHandler(auth));
 
 app.use(express.json());
 
-app.get("/", (_req, res) => {
+// routes
+app.use(apiRouter);
+app.use(apiErrorHandler)
+
+app.get("/health", (_req, res) => {
   res.status(200).send("OK");
 });
 

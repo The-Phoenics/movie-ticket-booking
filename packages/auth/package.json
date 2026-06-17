@@ -18,6 +18,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@movie-ticket-booking/shared": "workspace:*",
     "@movie-ticket-booking/config": "workspace:*",
     "typescript": "catalog:"
   }

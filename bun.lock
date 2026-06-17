@@ -30,6 +30,7 @@
       },
       "devDependencies": {
         "@movie-ticket-booking/config": "workspace:*",
+        "@movie-ticket-booking/shared": "workspace:*",
         "@types/bun": "catalog:",
         "@types/cors": "^2.8.17",
         "@types/express": "^5.0.1",
@@ -76,6 +77,7 @@
       },
       "devDependencies": {
         "@movie-ticket-booking/config": "workspace:*",
+        "@movie-ticket-booking/shared": "workspace:*",
         "typescript": "catalog:",
       },
     },
@@ -113,6 +115,15 @@
         "@movie-ticket-booking/config": "workspace:*",
         "@types/bun": "catalog:",
         "typescript": "catalog:",
+      },
+    },
+    "packages/shared": {
+      "name": "@movie-ticket-booking/shared",
+      "dependencies": {
+        "@movie-ticket-booking/db": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/express": "^5.0.6",
       },
     },
     "packages/ui": {
@@ -347,6 +358,8 @@
     "@movie-ticket-booking/db": ["@movie-ticket-booking/db@workspace:packages/db"],
 
     "@movie-ticket-booking/env": ["@movie-ticket-booking/env@workspace:packages/env"],
+
+    "@movie-ticket-booking/shared": ["@movie-ticket-booking/shared@workspace:packages/shared"],
 
     "@movie-ticket-booking/ui": ["@movie-ticket-booking/ui@workspace:packages/ui"],
 

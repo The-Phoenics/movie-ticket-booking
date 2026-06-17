@@ -10,14 +10,14 @@ datasource db {
 }
 
 model User {
-  id            String      @id
+  id            String      @id @default(cuid())
   email         String
+  name          String?
   emailVerified Boolean     @default(false)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   sessions      Session[]
   accounts      Account[]
-  theatreId     String      @unique
   role          ProfileType @default(CUSTOMER)
   customer      Customer?
   theatre       Theatre?
@@ -27,7 +27,7 @@ model User {
 }
 
 model Session {
-  id        String   @id
+  id        String   @id @default(cuid())
   expiresAt DateTime
   token     String
   createdAt DateTime @default(now())
@@ -43,7 +43,7 @@ model Session {
 }
 
 model Account {
-  id                    String    @id
+  id                    String    @id @default(cuid())
   accountId             String
   providerId            String
   userId                String
@@ -63,7 +63,7 @@ model Account {
 }
 
 model Verification {
-  id         String   @id
+  id         String   @id @default(cuid())
   identifier String
   value      String
   expiresAt  DateTime
@@ -80,7 +80,7 @@ enum ProfileType {
 }
 
 model Customer {
-  id     String @id
+  id     String @id @default(cuid())
   name   String
   userId String @unique
 
@@ -89,7 +89,7 @@ model Customer {
 }
 
 model Theatre {
-  id           String         @id
+  id           String         @id @default(cuid())
   userId       String         @unique
   address      String
   city         String
@@ -99,7 +99,7 @@ model Theatre {
 }
 
 model Movie {
-  id           String         @id
+  id           String         @id @default(cuid())
   title        String
   description  String
   rating       Int
@@ -108,7 +108,7 @@ model Movie {
 }
 
 model TheatreMovie {
-  id        String   @id
+  id        String   @id @default(cuid())
   theatreId String   @unique
   movieId   String   @unique
   startTime DateTime
@@ -118,7 +118,7 @@ model TheatreMovie {
 }
 
 model Seat {
-  id                String            @id
+  id                String            @id @default(cuid())
   theatreId         String            @unique
   row               String
   col               String
@@ -136,7 +136,7 @@ enum SEAT_STATUS {
 }
 
 model TheatreMovieSeat {
-  id              String      @id
+  id              String      @id @default(cuid())
   theatreMovieId  String      @unique
   seatId          String      @unique
   status          SEAT_STATUS @default(AVAILABLE)
@@ -150,7 +150,7 @@ model TheatreMovieSeat {
 }
 
 model Ticket {
-  id                 String   @id
+  id                 String   @id @default(cuid())
   theatreMovieSeatId String   @unique
   createdAt          DateTime @default(now())
   customerId         String
@@ -160,7 +160,7 @@ model Ticket {
 }
 
 model TheatreMovieSeatReservation {
-  id                 String   @id
+  id                 String   @id @default(cuid())
   theatreMovieSeatId String   @unique
   reservedAt         DateTime
   reservationTime    Int

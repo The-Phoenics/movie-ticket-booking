@@ -1,0 +1,13 @@
+{
+  "name": "@movie-ticket-booking/shared",
+  "exports": {
+    "./constants": "./constants.ts",
+    "./types": "./types.ts"
+  },
+  "dependencies": {
+    "@movie-ticket-booking/db": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6"
+  }
+}

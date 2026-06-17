@@ -1,11 +1,11 @@
 {
-  "name": "customer-server",
+  "name": "server",
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
     "build": "tsdown",
     "check-types": "tsc -b",
-    "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile customer-server",
+    "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
     "dev": "bun run --hot src/index.ts",
     "start": "bun run dist/index.mjs"
   },
@@ -20,6 +20,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@movie-ticket-booking/shared": "workspace:*",
     "@movie-ticket-booking/config": "workspace:*",
     "@types/bun": "catalog:",
     "@types/cors": "^2.8.17",
