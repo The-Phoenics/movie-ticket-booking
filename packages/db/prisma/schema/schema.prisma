@@ -141,17 +141,24 @@ enum SEAT_STATUS {
 }
 
 model TheatreMovieSeat {
-  id              String      @id @default(cuid())
-  theatreMovieId  String      @unique
-  seatId          String      @unique
-  status          SEAT_STATUS @default(AVAILABLE)
-  reservedAt      DateTime
-  reservationTime Int
-  price           Int
+  id             String      @id @default(cuid())
+  theatreMovieId String
+  seatId         String      @unique
+  status         SEAT_STATUS @default(AVAILABLE)
+  price          Int
 
   seat                        Seat                         @relation(fields: [seatId], references: [id])
   theatreMovieSeatReservation TheatreMovieSeatReservation?
   ticket                      Ticket?
+}
+
+model TheatreMovieSeatReservation {
+  id                 String   @id @default(cuid())
+  theatreMovieSeatId String   @unique
+  reservedAt         DateTime
+  duration           Int
+
+  theatreMovieSeat TheatreMovieSeat @relation(fields: [theatreMovieSeatId], references: [id])
 }
 
 model Ticket {
@@ -161,14 +168,5 @@ model Ticket {
   customerId         String
 
   customer         Customer         @relation(fields: [customerId], references: [id])
-  theatreMovieSeat TheatreMovieSeat @relation(fields: [theatreMovieSeatId], references: [id])
-}
-
-model TheatreMovieSeatReservation {
-  id                 String   @id @default(cuid())
-  theatreMovieSeatId String   @unique
-  reservedAt         DateTime
-  reservationTime    Int
-
   theatreMovieSeat TheatreMovieSeat @relation(fields: [theatreMovieSeatId], references: [id])
 }

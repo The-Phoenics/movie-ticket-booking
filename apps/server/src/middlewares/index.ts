@@ -7,6 +7,7 @@ import {
 import z from "zod";
 import { fromNodeHeaders } from "better-auth/node";
 import type { NextFunction, Request, Response } from "express";
+import { ServerApiError } from "@/lib";
 
 export async function authRequired(
   req: Request,
@@ -63,15 +64,23 @@ export interface ValidationSchemaType {
 export function validateRequest(validationSchema: ValidationSchemaType) {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (validationSchema.params) {
-        validationSchema.params.parse(req.params);
+      const errors = [];
+      for (let k in validationSchema) {
+        const key = k as "params" | "body" | "query";
+        const schema = validationSchema[key];
+        if (schema) {
+          const result = schema.safeParse(req[key]);
+          if (!result.success) {
+            const err = result.error;
+            errors.push(err);
+          }
+        }
       }
-      if (validationSchema.body) {
-        validationSchema.body.parse(req.params);
-      }
-      if (validationSchema.query) {
-        validationSchema.query.parse(req.params);
-      }
+
+      console.log("Validation error:", errors)
+
+      if (errors.length > 0)
+        throw new ServerApiError("Invalid request input", 401);
     } catch (err) {
       next(err);
     }
@@ -80,11 +89,10 @@ export function validateRequest(validationSchema: ValidationSchemaType) {
 }
 
 export function apiErrorHandler(
-  error: Error,
+  error: ServerApiError,
   req: Request,
   res: Response,
   next: NextFunction,
 ) {
-  console.log("Error handler middleware error:", error);
-  next(error);
+  res.status(400).json(apiJsonRseponse(false, null, error.message));
 }
