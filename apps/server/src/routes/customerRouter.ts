@@ -3,8 +3,23 @@ import prisma from "@movie-ticket-booking/db";
 import { auth } from "@movie-ticket-booking/auth";
 import { fromNodeHeaders } from "better-auth/node";
 import { apiJsonRseponse } from "../utils";
+import {
+  bookCustomerSeatController,
+  reserveCustomerSeatController,
+} from "@/controllers/customerController";
+import { validateRequest, type ValidationSchemaType } from "@/middlewares";
+import z from "zod";
 
 const customerRouter: Router = express.Router();
+
+const SeatReserveRequestSchema: ValidationSchemaType = {
+  params: z.object({
+    theatreMovieId: z.string().min(1),
+    theatreMovieSeatId: z.string().min(1),
+  }),
+};
+
+const BookReserveRequestSchema = SeatReserveRequestSchema;
 
 customerRouter.get("/", async (req, res) => {
   const session = await auth.api.getSession({
@@ -80,5 +95,17 @@ customerRouter.patch("/", async (req, res) => {
     .status(200)
     .json(apiJsonRseponse(true, updatedUser, "User updated successfully"));
 });
+
+customerRouter.post(
+  "/:theatreMovieId/:theatreMovieSeatId/reserve",
+  validateRequest(SeatReserveRequestSchema),
+  reserveCustomerSeatController,
+);
+
+customerRouter.post(
+  "/:theatreMovieId/:theatreMovieSeatId/book",
+  validateRequest(BookReserveRequestSchema),
+  bookCustomerSeatController,
+);
 
 export default customerRouter;
