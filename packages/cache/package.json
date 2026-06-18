@@ -1,0 +1,13 @@
+{
+  "name": "@movie-ticket-booking/cache",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+   "dependencies": {
+    "ioredis": "^5.11.1"
+  },
+  "devDependencies": {
+    "@types/ioredis": "^5.0.0"
+  }
+}

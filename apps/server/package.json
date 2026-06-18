@@ -14,6 +14,7 @@
     "@movie-ticket-booking/auth": "workspace:*",
     "@movie-ticket-booking/db": "workspace:*",
     "@movie-ticket-booking/env": "workspace:*",
+    "@movie-ticket-booking/cache": "workspace:*",
     "better-auth": "catalog:",
     "cors": "^2.8.5",
     "dotenv": "catalog:",
