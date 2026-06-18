@@ -110,13 +110,16 @@ model Movie {
 }
 
 model TheatreMovie {
-  id        String   @id @default(cuid())
-  theatreId String   @unique
-  movieId   String   @unique
-  startTime DateTime
-  endTime   DateTime
-  theatre   Theatre  @relation(fields: [theatreId], references: [id])
-  movie     Movie    @relation(fields: [movieId], references: [id])
+  id                String             @id @default(cuid())
+  theatreId         String
+  movieId           String
+  startTime         DateTime
+  endTime           DateTime
+  theatre           Theatre            @relation(fields: [theatreId], references: [id])
+  movie             Movie              @relation(fields: [movieId], references: [id])
+  theatreMovieSeats TheatreMovieSeat[]
+
+  @@unique([theatreId, movieId])
 }
 
 model Seat {
@@ -147,6 +150,7 @@ model TheatreMovieSeat {
   status         SEAT_STATUS @default(AVAILABLE)
   price          Int
 
+  theatreMovie                TheatreMovie                 @relation(fields: [theatreMovieId], references: [id])
   seat                        Seat                         @relation(fields: [seatId], references: [id])
   theatreMovieSeatReservation TheatreMovieSeatReservation?
   ticket                      Ticket?

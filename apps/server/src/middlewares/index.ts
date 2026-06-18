@@ -94,5 +94,5 @@ export function apiErrorHandler(
   res: Response,
   next: NextFunction,
 ) {
-  res.status(400).json(apiJsonRseponse(false, null, error.message));
+  res.status(error.status).json(apiJsonRseponse(false, null, error.message));
 }

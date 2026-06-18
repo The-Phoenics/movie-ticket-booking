@@ -1,12 +1,10 @@
 import { ServerApiError } from "@/lib";
 import {
   createTheatre,
-  createMovie,
   theatreNumOfSeats,
   addMovieToTheatre,
-  getMovies,
-  getTheatreMovies,
 } from "@/services/businessService";
+import { getTheatreMovies } from "@/services/movieService";
 import { apiJsonRseponse, isValidDateInstance } from "@/utils";
 import prisma from "@movie-ticket-booking/db";
 import type { NextFunction, Request, Response } from "express";
@@ -30,32 +28,6 @@ export async function createTheatreContoller(
       .status(201)
       .json(
         apiJsonRseponse(true, created, "Successfully created theatre", null),
-      );
-  } catch (err) {
-    next(err);
-  }
-}
-
-export async function createMovieContoller(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  try {
-    const user = req.user;
-    if (!user || !user.id) {
-      throw new ServerApiError("Invalid user session req.user not found", 401);
-    }
-
-    let { title, description, rating, crew } = req.body;
-    if (!rating) rating = 0;
-    if (!crew) crew = {};
-    const movieData = { title, description, rating, crew };
-    const createdMovie = createMovie(movieData);
-    res
-      .status(201)
-      .json(
-        apiJsonRseponse(true, createdMovie, "Successfully created movie", null),
       );
   } catch (err) {
     next(err);
@@ -112,7 +84,7 @@ export async function addMovieToTheatreController(
     }
 
     // add movie to theatre
-    const addedMovie = await addMovieToTheatre(
+    const theatreMovie = await addMovieToTheatre(
       theatreId,
       movieId,
       startTime,
@@ -124,27 +96,11 @@ export async function addMovieToTheatreController(
       .json(
         apiJsonRseponse(
           true,
-          addedMovie,
+          { theatreMovie },
           "Successfully added movie to theatre",
           null,
         ),
       );
-  } catch (err) {
-    next(err);
-  }
-}
-
-// TODO: add pagination and filters
-export async function getMoviesController(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  try {
-    const movies = await getMovies();
-    res
-      .status(200)
-      .json(apiJsonRseponse(true, movies, "Successfully fetched movies"));
   } catch (err) {
     next(err);
   }

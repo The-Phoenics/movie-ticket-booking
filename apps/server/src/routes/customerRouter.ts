@@ -1,4 +1,4 @@
-import express, { Router, type Request, type Response } from "express";
+import express, { Router } from "express";
 import prisma from "@movie-ticket-booking/db";
 import { auth } from "@movie-ticket-booking/auth";
 import { fromNodeHeaders } from "better-auth/node";
