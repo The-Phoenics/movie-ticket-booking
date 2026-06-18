@@ -29,6 +29,7 @@
     "check-types": "turbo check-types",
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F server dev",
+    "db:populate": "turbo -F server populate",
     "db:push": "turbo -F @movie-ticket-booking/db db:push",
     "db:studio": "turbo -F @movie-ticket-booking/db db:studio",
     "db:generate": "turbo -F @movie-ticket-booking/db db:generate",

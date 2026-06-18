@@ -80,8 +80,9 @@ export async function addMovieToTheatre(
         data: theatreMovieSeatsData,
         skipDuplicates: true,
       });
-      return theatreMovie;
+      return createdTheatreMovie;
     });
+    return theatreMovie;
   } catch (err) {
     console.log(err);
     throw new ServerApiError("DB Error: Failed to add movie to theatre", 401);

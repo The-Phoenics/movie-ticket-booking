@@ -1,0 +1,116 @@
+{
+  "users": [
+    {
+      "name": "johnb",
+      "email": "john.business@example.com",
+      "password": "john business",
+      "role": "BUSINESS"
+    },
+    {
+      "name": "johnc",
+      "email": "jane.customer@example.com",
+      "password": "john customer",
+      "role": "CUSTOMER"
+    }
+  ],
+  "theatres": [
+    {
+      "title": "PVR Cinemas",
+      "address": "123 Main St",
+      "city": "New York",
+      "country": "USA",
+      "seats": [
+        {
+          "row": "A",
+          "col": 1
+        },
+        {
+          "row": "A",
+          "col": 2
+        },
+        {
+          "row": "A",
+          "col": 3
+        },
+        {
+          "row": "A",
+          "col": 4
+        },
+        {
+          "row": "A",
+          "col": 5
+        },
+        {
+          "row": "B",
+          "col": 1
+        },
+        {
+          "row": "B",
+          "col": 2
+        },
+        {
+          "row": "B",
+          "col": 3
+        },
+        {
+          "row": "B",
+          "col": 4
+        },
+        {
+          "row": "B",
+          "col": 5
+        }
+      ]
+    },
+    {
+      "title": "Inox Cinema",
+      "address": "Sector 10, Vikaspuri",
+      "city": "Vikaspuri",
+      "country": "India",
+      "seats": [
+        {
+          "row": "A",
+          "col": 1
+        },
+        {
+          "row": "A",
+          "col": 2
+        },
+        {
+          "row": "A",
+          "col": 3
+        },
+        {
+          "row": "B",
+          "col": 1
+        },
+        {
+          "row": "B",
+          "col": 2
+        }
+      ]
+    }
+  ],
+  "movies": [
+    {
+      "title": "The Dark Knight",
+      "description": "A movie about a movie",
+      "rating": 5
+    },
+    {
+      "title": "Lord of the Rings",
+      "description": "A movie about a lord of the rings",
+      "rating": 5
+    },
+    {
+      "title": "The Matrix",
+      "description": "Mindblowing movie",
+      "rating": 4
+    },
+    {
+      "title": "The Avengers",
+      "description": "A movie about the avengers",
+      "rating": 3
+    }
+  ]
+}
