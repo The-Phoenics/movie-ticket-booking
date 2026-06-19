@@ -31,10 +31,7 @@ export async function theatreNumOfSeats(theatreId: string) {
       },
     });
   } catch (err) {
-    throw new ServerApiError(
-      "DB Error: Failed to count number of seats in theatre",
-      501,
-    );
+    throw new ServerApiError("DB Error: Failed to count number of seats in theatre", 501);
   }
   return seatsCount ?? 0;
 }

@@ -3,6 +3,8 @@ import {
   getMoviesController,
   getMovieController,
   getTheatreMovieSeatsController,
+  reserveMovieSeatController,
+  bookMovieSeatController,
 } from "@/controllers/movieController";
 import { authRequired, validateRequest, type ValidationSchemaType } from "@/middlewares";
 import z from "zod";
@@ -25,10 +27,18 @@ const GetMovieValidationSchema: ValidationSchemaType = {
 
 const GetTheatreMovieValidationSchema: ValidationSchemaType = {
   params: z.object({
-      movieId: z.string().min(1),
-      theatreMovieId: z.string().min(1)
-    }),
+    movieId: z.string().min(1),
+    theatreMovieId: z.string().min(1),
+  }),
 };
+
+const SeatReserveRequestSchema: ValidationSchemaType = {
+  params: z.object({
+    theatreMovieSeatId: z.string().min(1),
+  }),
+};
+
+const SeatBookRequestSchema = SeatReserveRequestSchema;
 
 const moviesRouter: Router = express.Router();
 
@@ -43,16 +53,25 @@ moviesRouter.post(
 moviesRouter.get("/", getMoviesController);
 
 // get movie with available theatres with timing
-moviesRouter.get(
-  "/:movieId",
-  validateRequest(GetMovieValidationSchema),
-  getMovieController,
-);
+moviesRouter.get("/:movieId", validateRequest(GetMovieValidationSchema), getMovieController);
 
+// get theatre movie seats (seats reservation page)
 moviesRouter.get(
   "/:movieId/:theatreMovieId",
   validateRequest(GetTheatreMovieValidationSchema),
   getTheatreMovieSeatsController,
+);
+
+moviesRouter.post(
+  "/:movieId/:theatreMovieId/reserve/:theatreMovieSeatId",
+  validateRequest(SeatReserveRequestSchema),
+  reserveMovieSeatController,
+);
+
+moviesRouter.post(
+  "/:movieId/:theatreMovieId/book/:theatreMovieSeatId",
+  validateRequest(SeatBookRequestSchema),
+  bookMovieSeatController,
 );
 
 export default moviesRouter;

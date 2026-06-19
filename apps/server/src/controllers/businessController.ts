@@ -1,19 +1,11 @@
 import { ServerApiError } from "@/lib";
-import {
-  createTheatre,
-  theatreNumOfSeats,
-  addMovieToTheatre,
-} from "@/services/businessService";
+import { createTheatre, theatreNumOfSeats, addMovieToTheatre } from "@/services/businessService";
 import { getTheatreMovies } from "@/services/movieService";
 import { apiJsonRseponse, isValidDateInstance } from "@/utils";
 import prisma from "@movie-ticket-booking/db";
 import type { NextFunction, Request, Response } from "express";
 
-export async function createTheatreContoller(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function createTheatreContoller(req: Request, res: Response, next: NextFunction) {
   try {
     const user = req.user;
     if (!user || !user.id) {
@@ -24,21 +16,13 @@ export async function createTheatreContoller(
     const { title, address, city, country } = req.body;
     const theatreData = { title, userId, address, city, country };
     const created = await createTheatre(theatreData);
-    res
-      .status(201)
-      .json(
-        apiJsonRseponse(true, created, "Successfully created theatre", null),
-      );
+    res.status(201).json(apiJsonRseponse(true, created, "Successfully created theatre", null));
   } catch (err) {
     next(err);
   }
 }
 
-export async function addMovieToTheatreController(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function addMovieToTheatreController(req: Request, res: Response, next: NextFunction) {
   try {
     const user = req.user;
     if (!user || !user.id) {
@@ -55,26 +39,15 @@ export async function addMovieToTheatreController(
 
     // check min seats in theatre
     if (theatreSeatsCount <= 0) {
-      throw new ServerApiError(
-        "Add seats to theatre before adding movies",
-        401,
-      );
+      throw new ServerApiError("Add seats to theatre before adding movies", 401);
     }
 
     // check if movie exists
-    if (!movie)
-      throw new ServerApiError(
-        `Invalid movie. Movie not found with id: ${movieId}`,
-        404,
-      );
+    if (!movie) throw new ServerApiError(`Invalid movie. Movie not found with id: ${movieId}`, 404);
 
     const startTime = new Date(req.body.startTime);
     const endTime = new Date(req.body.endTime);
-    if (
-      !isValidDateInstance(startTime) ||
-      !isValidDateInstance(endTime) ||
-      startTime > endTime
-    ) {
+    if (!isValidDateInstance(startTime) || !isValidDateInstance(endTime) || startTime > endTime) {
       throw new ServerApiError("Invalid movie start or end date", 401);
     }
 
@@ -84,33 +57,16 @@ export async function addMovieToTheatreController(
     }
 
     // add movie to theatre
-    const theatreMovie = await addMovieToTheatre(
-      theatreId,
-      movieId,
-      startTime,
-      endTime,
-      price,
-    );
+    const theatreMovie = await addMovieToTheatre(theatreId, movieId, startTime, endTime, price);
     res
       .status(201)
-      .json(
-        apiJsonRseponse(
-          true,
-          { theatreMovie },
-          "Successfully added movie to theatre",
-          null,
-        ),
-      );
+      .json(apiJsonRseponse(true, { theatreMovie }, "Successfully added movie to theatre", null));
   } catch (err) {
     next(err);
   }
 }
 
-export async function getTheatreMoviesController(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function getTheatreMoviesController(req: Request, res: Response, next: NextFunction) {
   // TODO: create a valiate theatre request function to match user and theatre and sent theatreId
   const theatreId = req.params.theatreId as string;
   if (!theatreId) {
@@ -122,14 +78,11 @@ export async function getTheatreMoviesController(
       id: theatreId,
     },
   });
-  if (!theatre)
-    res.status(404).json(apiJsonRseponse(false, null, "Invalid theatre id"));
+  if (!theatre) res.status(404).json(apiJsonRseponse(false, null, "Invalid theatre id"));
 
   try {
     const movies = await getTheatreMovies(theatreId);
-    res
-      .status(200)
-      .json(apiJsonRseponse(true, movies, "Successfully fetched movies"));
+    res.status(200).json(apiJsonRseponse(true, movies, "Successfully fetched movies"));
   } catch (err) {
     next(err);
   }

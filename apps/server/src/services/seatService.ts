@@ -1,6 +1,8 @@
 import { ServerApiError } from "@/lib";
 import prisma from "@movie-ticket-booking/db";
 import type { BatchPayload } from "../../../../packages/db/prisma/generated/internal/prismaNamespace";
+import { SEAT_STATUS } from "@movie-ticket-booking/shared/types";
+import { SEAT_RESERVATION_DURATION } from "@movie-ticket-booking/shared/constants";
 
 type Seat = {
   row: string;
@@ -27,10 +29,7 @@ export async function createSeatsBulk(seats: Seat[], theatreId: string) {
   return createdSeats;
 }
 
-export async function deleteSeatsBulk(
-  seats: Seat[],
-  theatreId: string,
-): Promise<BatchPayload> {
+export async function deleteSeatsBulk(seats: Seat[], theatreId: string): Promise<BatchPayload> {
   let deletedSeats = null;
   try {
     const rows: string[] = [];
@@ -55,4 +54,55 @@ export async function deleteSeatsBulk(
     throw new ServerApiError("DB error: Failed to delete bulk seats", 500);
   }
   return deletedSeats;
+}
+
+export async function reserveTheatreMovieSeat(theatreMovieSeatId: string) {
+  try {
+    const result = await prisma.$transaction(
+      async (tx) => {
+        const seat = await tx.theatreMovieSeat.findUnique({
+          where: {
+            id: theatreMovieSeatId,
+          },
+        });
+        if (!seat || seat.status === SEAT_STATUS.SOLD) {
+          return false;
+        }
+
+        await Promise.all([
+          // update theatre movie seat status
+          tx.theatreMovieSeat.update({
+            where: {
+              id: theatreMovieSeatId,
+            },
+            data: {
+              status: SEAT_STATUS.SOLD,
+            },
+          }),
+          // create or udpate reservation
+          tx.theatreMovieSeatReservation.upsert({
+            where: {
+              theatreMovieSeatId: theatreMovieSeatId,
+            },
+            create: {
+              theatreMovieSeatId: theatreMovieSeatId,
+              duration: SEAT_RESERVATION_DURATION,
+              reservedAt: new Date(),
+            },
+            update: {
+              duration: SEAT_RESERVATION_DURATION,
+              reservedAt: new Date(),
+            },
+          }),
+        ]);
+        return true;
+      },
+      {
+        isolationLevel: "Serializable",
+      },
+    );
+    return result;
+  } catch (err) {
+    throw new ServerApiError("DB Error: Failed to reserve seat for user", 500);
+  }
 }

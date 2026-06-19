@@ -11,20 +11,19 @@ export async function createMovie(movieData: MovieCreateInput) {
       },
     });
     return {
-      movie
-    }
+      movie,
+    };
   } catch (err) {
     throw new ServerApiError("DB Error: Failed to create theatre", 501);
   }
 }
 
-
 export async function getMovies() {
   try {
     const movies = await prisma.movie.findMany();
     return {
-        movies
-    }
+      movies,
+    };
   } catch (err) {
     throw new ServerApiError("DB Error: Failed to query movies", 500);
   }
@@ -45,12 +44,10 @@ export async function getMovieDetailsAndTheatres(movieId: string) {
         },
       }),
     ]);
-    const theatres = theatreMovie.sort(
-      (th1: TheatreMovie, th2: TheatreMovie) => {
-        if (th1.startTime < th2.startTime) return 1;
-        return -1;
-      },
-    );
+    const theatres = theatreMovie.sort((th1: TheatreMovie, th2: TheatreMovie) => {
+      if (th1.startTime < th2.startTime) return 1;
+      return -1;
+    });
     return {
       movie: { ...movie },
       theatres: theatres,

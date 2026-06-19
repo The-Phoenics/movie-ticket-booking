@@ -5,6 +5,7 @@ import cors from "cors";
 import express from "express";
 import apiRouter from "./routes";
 import { apiErrorHandler } from "./middlewares";
+import "@movie-ticket-booking/cache";
 
 const app = express();
 
@@ -23,7 +24,7 @@ app.use(express.json());
 
 // routes
 app.use(apiRouter);
-app.use(apiErrorHandler)
+app.use(apiErrorHandler);
 
 app.get("/health", (_req, res) => {
   res.status(200).send("OK");

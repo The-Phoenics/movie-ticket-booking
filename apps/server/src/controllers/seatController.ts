@@ -4,11 +4,7 @@ import { apiJsonRseponse } from "@/utils";
 import prisma from "@movie-ticket-booking/db";
 import type { NextFunction, Request, Response } from "express";
 
-export async function createSeatsController(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function createSeatsController(req: Request, res: Response, next: NextFunction) {
   try {
     const user = req.user;
     const theatreId = req.params.theatreId as string;
@@ -43,11 +39,7 @@ export async function createSeatsController(
   }
 }
 
-export async function deleteSeatsController(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function deleteSeatsController(req: Request, res: Response, next: NextFunction) {
   try {
     const user = req.user;
     const theatreId = req.params.theatreId as string;

@@ -15,3 +15,7 @@ export function apiJsonRseponse<T = unknown>(
 export function isValidDateInstance(date: any): boolean {
   return date instanceof Date && !isNaN(date.getTime());
 }
+
+export function minutesToSeconds(timeInMinutes: number) {
+  return timeInMinutes * 60;
+}
