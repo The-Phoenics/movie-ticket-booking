@@ -56,7 +56,7 @@ export async function deleteSeatsBulk(seats: Seat[], theatreId: string): Promise
   return deletedSeats;
 }
 
-export async function reserveTheatreMovieSeat(theatreMovieSeatId: string) {
+export async function reserveTheatreMovieSeat(customerId: string, theatreMovieSeatId: string) {
   try {
     const result = await prisma.$transaction(
       async (tx) => {
@@ -76,20 +76,14 @@ export async function reserveTheatreMovieSeat(theatreMovieSeatId: string) {
               id: theatreMovieSeatId,
             },
             data: {
-              status: SEAT_STATUS.SOLD,
+              status: SEAT_STATUS.SOLD, // unavailable
             },
           }),
-          // create or udpate reservation
-          tx.theatreMovieSeatReservation.upsert({
-            where: {
+          // udpate reservation
+          tx.theatreMovieSeatReservation.create({
+            data: {
+              customerId: customerId,
               theatreMovieSeatId: theatreMovieSeatId,
-            },
-            create: {
-              theatreMovieSeatId: theatreMovieSeatId,
-              duration: SEAT_RESERVATION_DURATION,
-              reservedAt: new Date(),
-            },
-            update: {
               duration: SEAT_RESERVATION_DURATION,
               reservedAt: new Date(),
             },
@@ -105,4 +99,25 @@ export async function reserveTheatreMovieSeat(theatreMovieSeatId: string) {
   } catch (err) {
     throw new ServerApiError("DB Error: Failed to reserve seat for user", 500);
   }
+}
+
+export async function verifySeatReservationForUser(customerId: string, theatreMovieSeatId: string) {
+  const reservedSeats = await prisma.theatreMovieSeatReservation.findMany({
+    where: {
+      theatreMovieSeatId: theatreMovieSeatId,
+      customerId: customerId,
+    },
+    orderBy: {
+      reservedAt: "desc",
+    },
+  });
+  if (!reservedSeats) return false;
+  const firstReservation = reservedSeats[0];
+  const reservedTime = new Date(firstReservation!.reservedAt);
+  const expirationTimeStamp = new Date(reservedTime.getTime() + firstReservation!.duration);
+  const currTimeStamp = new Date();
+  if (expirationTimeStamp < currTimeStamp) {
+    return false;
+  }
+  return true;
 }

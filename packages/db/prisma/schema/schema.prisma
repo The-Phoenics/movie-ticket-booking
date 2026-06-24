@@ -84,9 +84,10 @@ model Customer {
   name   String
   userId String @unique
 
-  orders Order[]
-  ticket Ticket[]
-  user   User     @relation(fields: [userId], references: [id])
+  orders           Order[]
+  ticket           Ticket[]
+  seatReservations TheatreMovieSeatReservation[]
+  user             User                          @relation(fields: [userId], references: [id])
 }
 
 model Theatre {
@@ -151,19 +152,21 @@ model TheatreMovieSeat {
   status         SEAT_STATUS @default(AVAILABLE)
   price          Int
 
-  theatreMovie                TheatreMovie                 @relation(fields: [theatreMovieId], references: [id])
-  seat                        Seat                         @relation(fields: [seatId], references: [id])
-  theatreMovieSeatReservation TheatreMovieSeatReservation?
-  ticket                      Ticket?
-  orders                      Order[]
+  theatreMovie TheatreMovie                  @relation(fields: [theatreMovieId], references: [id])
+  seat         Seat                          @relation(fields: [seatId], references: [id])
+  reservations TheatreMovieSeatReservation[]
+  ticket       Ticket?
+  orders       Order[]
 }
 
 model TheatreMovieSeatReservation {
   id                 String   @id @default(cuid())
-  theatreMovieSeatId String   @unique
+  customerId         String
+  theatreMovieSeatId String
   reservedAt         DateTime
   duration           Int
 
+  customer         Customer         @relation(fields: [customerId], references: [id])
   theatreMovieSeat TheatreMovieSeat @relation(fields: [theatreMovieSeatId], references: [id])
 }
 

@@ -5,12 +5,17 @@ import {
   getMovies,
   getTheatreMovieSeats,
 } from "@/services/movieService";
-import { createStripePaymentIntent } from "@/services/paymentService";
-import { reserveTheatreMovieSeat } from "@/services/seatService";
+import { reserveTheatreMovieSeat, verifySeatReservationForUser } from "@/services/seatService";
 import { apiJsonRseponse, convertIntoSmallestCurrencyUnit, minutesToSeconds } from "@/utils";
 import redisClient from "@movie-ticket-booking/cache";
+import prisma from "@movie-ticket-booking/db";
 import { SEAT_RESERVATION_DURATION } from "@movie-ticket-booking/shared/constants";
-import { CURRENCY, ProfileType } from "@movie-ticket-booking/shared/types";
+import {
+  CURRENCY,
+  ORDER_STATUS,
+  PAYMENT_PROVIDER,
+  ProfileType,
+} from "@movie-ticket-booking/shared/types";
 import type { NextFunction } from "express";
 import type { Request, Response } from "express";
 
@@ -83,7 +88,10 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
     if (!theatreMovieId) throw new ServerApiError("Invalid theatre movie", 401);
     if (!theatreMovieSeatId) throw new ServerApiError("Invalid theatre movie seat", 401);
 
-    res.send("reserving");
+    const customer = await prisma.customer.findUnique({ where: { userId: user.id } });
+    if (!customer) {
+      throw new ServerApiError("Unauthorized user making request to buy ticket", 402);
+    }
 
     // check redis for reservation
     const key = `seat:${theatreMovieSeatId}:`;
@@ -91,7 +99,7 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
 
     if (reservedForUserId) {
       // if reserved for same user who requested reservation then checkout to buy page
-      if (reservedForUserId === user.id) {
+      if (reservedForUserId === customer.id) {
         return res.status(200).json(
           apiJsonRseponse(
             true,
@@ -110,7 +118,7 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
     }
 
     // call reserve seat service
-    const reservationSuccess = reserveTheatreMovieSeat(theatreMovieSeatId);
+    const reservationSuccess = reserveTheatreMovieSeat(customer.id, theatreMovieSeatId);
 
     // if seat couldn't be resesrved - gets reserved for another user -> return seat not available
     if (!reservationSuccess) {
@@ -119,7 +127,7 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
           true,
           {
             reservation: {
-              reservedFor: user,
+              reservedFor: customer,
             },
           },
           "Seat already reserved for the user",
@@ -131,7 +139,7 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
     // seat breserved successfully
     // update redis
     const expirationTime = minutesToSeconds(SEAT_RESERVATION_DURATION);
-    await redisClient.set(key, user.id, "EX", expirationTime, "NX");
+    await redisClient.set(key, customer.id, "EX", expirationTime, "NX");
 
     // TODO: push to expire reservation queue (bullmq)
     // expire reservation worker: remove reservation entry -> update seat status to available (don't if seat is in SOLD state) -> remove redis entry
@@ -147,40 +155,99 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
 export async function bookMovieSeatController(req: Request, res: Response, next: NextFunction) {
   try {
     const theatreMovieId = req.params.theatreMovieId as string;
-    const theatreMovieSeatId = req.params.theatreMovieSeatId;
+    const theatreMovieSeatId = req.params.theatreMovieSeatId as string;
     if (!theatreMovieId) throw new ServerApiError("Invalid theatreMovieId", 401);
     if (!theatreMovieSeatId) throw new ServerApiError("Invalid theatreMovieSeatId", 401);
 
     const amount = Number.parseInt(req.body.amount);
-    const currency = req.body.currency as CURRENCY.USD;
+    const currency = req.body.currency as CURRENCY;
     if (!amount || isNaN(amount)) throw new ServerApiError("Invalid amount input", 401);
     if (!currency) throw new ServerApiError("Invalid currency input", 401);
 
-    const paymentIntent = await stripe.paymentIntents.create({
-      // Amount value must be in the smallest currency unit (e.g., cents for USD)
-      amount: convertIntoSmallestCurrencyUnit(amount, currency),
-      currency: currency,
-      automatic_payment_methods: {
-        enabled: true,
+    const user = req.user;
+    if (!user || !user.id) {
+      throw new ServerApiError("Unauthorized user making request to buy ticket", 402);
+    }
+
+    // verify user who's booking with the user who has reserved
+    const customer = await prisma.customer.findUnique({
+      where: { userId: user.id },
+    });
+    if (!customer) {
+      throw new ServerApiError("Unauthorized user making request to buy ticket", 402);
+    }
+    const verified = verifySeatReservationForUser(customer.id, theatreMovieSeatId);
+    if (!verified) {
+      throw new ServerApiError("Seat is reserved for the user trying to buy the seat", 401);
+    }
+
+    // create draft order and payment with pending states, store payment providers id
+    const result = await prisma.order.create({
+      data: {
+        status: ORDER_STATUS.PENDING,
+        customerId: customer.id,
+        theatreMovieSeatId: theatreMovieSeatId,
+        payment: {
+          create: {
+            amount: amount,
+            currency: currency,
+            paymentId: "", // update later
+            paymentProvider: PAYMENT_PROVIDER.STRIPE,
+          },
+        },
       },
     });
 
-    // create draft order and payment with pending states, store payment providers id
+    // create payment intent
+    let paymentIntent = null;
+    try {
+      paymentIntent = await stripe.paymentIntents.create(
+        {
+          // Amount value must be in the smallest currency unit (e.g., cents for USD)
+          amount: convertIntoSmallestCurrencyUnit(amount, currency),
+          currency: currency,
+          automatic_payment_methods: {
+            enabled: true,
+          },
+          metadata: {
+            customerId: result.customerId,
+            orderId: result.id,
+            theatreMovieSeatId: theatreMovieSeatId,
+          },
+        },
+        {
+          idempotencyKey: result.id,
+        },
+      );
+    } catch (err) {
+      throw new ServerApiError(
+        "Failed to create payment intent to buy ticket with order.id: " + result.id,
+        500,
+      );
+    }
 
-    res.status(200).json(paymentIntent);
+    // udpate order payment table with payment intent id: this id will be used to update
+    await prisma.order.update({
+      where: {
+        id: result.id,
+      },
+      data: {
+        payment: {
+          update: {
+            data: {
+              paymentId: paymentIntent.id,
+            },
+          },
+        },
+      },
+    });
 
-    // verify user who's booking with the user who has reserved
-
-    // implement proper payment system (look into it: idempotency key)
-
-    // put in reserve seat route: generate a draft order row in orders during checkout and send it to user
-    // get this orderId and check whether order is in process
-
-    // make request for stripe intent
-
-    // send client_secret to user
-
-    // implement webhook route for stripe payment status
+    return res.status(200).json(
+      apiJsonRseponse(true, {
+        clientSecret: paymentIntent.client_secret,
+        orderId: result.id,
+      }),
+    );
   } catch (err) {
     next(err);
   }

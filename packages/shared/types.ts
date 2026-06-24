@@ -13,8 +13,3 @@ declare global {
 export type AuthenticatedRequest = Request & {
   user: User;
 };
-
-export enum CURRENCY {
-  USD = "usd",
-  INR = "inr",
-}
