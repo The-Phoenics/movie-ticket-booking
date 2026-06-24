@@ -1,3 +1,5 @@
+import { CURRENCY } from "@movie-ticket-booking/shared/types";
+
 export function apiJsonRseponse<T = unknown>(
   success: boolean,
   data: T | null = null,
@@ -18,4 +20,19 @@ export function isValidDateInstance(date: any): boolean {
 
 export function minutesToSeconds(timeInMinutes: number) {
   return timeInMinutes * 60;
+}
+
+export function convertIntoSmallestCurrencyUnit(amount: number, currency: CURRENCY) {
+  let convertedValue = 0;
+  switch (currency) {
+    case CURRENCY.USD:
+      convertedValue = amount * 100;
+      break;
+    case CURRENCY.INR:
+      convertedValue = amount * 100;
+      break;
+    default:
+      convertedValue = amount;
+  }
+  return convertedValue;
 }

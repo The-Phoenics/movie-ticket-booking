@@ -92,6 +92,6 @@ export async function getTheatreMovieSeats(theatreMovieId: string) {
       theatreMovieSeatsData: seats,
     };
   } catch (err) {
-    throw new ServerApiError("DB Error: Failed to query movie details", 500);
+    throw new ServerApiError("DB Error: Failed to query movie details", 500, err);
   }
 }

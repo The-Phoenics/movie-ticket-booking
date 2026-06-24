@@ -1,15 +1,16 @@
-import { ServerApiError } from "@/lib";
+import { ServerApiError, stripe } from "@/lib";
 import {
   createMovie,
   getMovieDetailsAndTheatres,
   getMovies,
   getTheatreMovieSeats,
 } from "@/services/movieService";
+import { createStripePaymentIntent } from "@/services/paymentService";
 import { reserveTheatreMovieSeat } from "@/services/seatService";
-import { apiJsonRseponse, minutesToSeconds } from "@/utils";
+import { apiJsonRseponse, convertIntoSmallestCurrencyUnit, minutesToSeconds } from "@/utils";
 import redisClient from "@movie-ticket-booking/cache";
 import { SEAT_RESERVATION_DURATION } from "@movie-ticket-booking/shared/constants";
-import { ProfileType } from "@movie-ticket-booking/shared/types";
+import { CURRENCY, ProfileType } from "@movie-ticket-booking/shared/types";
 import type { NextFunction } from "express";
 import type { Request, Response } from "express";
 
@@ -151,11 +152,33 @@ export async function bookMovieSeatController(req: Request, res: Response, next:
     //   throw new ServerApiError("Invalid theatreMovieId", 401);
     if (!theatreMovieSeatId) throw new ServerApiError("Invalid theatreMovieSeatId", 401);
 
-    res.send("reserving");
+    // const paymentIntent = createStripePaymentIntent(500, CURRENCY.USD);
+    // res.status(200).json({ paymentIntent });
+
+    const amount = 2;
+    const currency = CURRENCY.USD;
+    const paymentIntent = await stripe.paymentIntents.create({
+      // Amount value must be in the smallest currency unit (e.g., cents for USD)
+      amount: convertIntoSmallestCurrencyUnit(amount, currency),
+      currency: currency,
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
+    res.status(200).json(paymentIntent);
 
     // verify user who's booking with the user who has reserved
 
     // implement proper payment system (look into it: idempotency key)
+
+    // put in reserve seat route: generate a draft order row in orders during checkout and send it to user
+    // get this orderId and check whether order is in process
+
+    // make request for stripe intent
+
+    // send client_secret to user
+
+    // implement webhook route for stripe payment status
   } catch (err) {
     next(err);
   }

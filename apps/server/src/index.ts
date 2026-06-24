@@ -6,6 +6,7 @@ import express from "express";
 import apiRouter from "./routes";
 import { apiErrorHandler } from "./middlewares";
 import "@movie-ticket-booking/cache";
+import webhookRouter from "./routes/webhookRouter";
 
 const app = express();
 
@@ -19,6 +20,9 @@ app.use(
 );
 
 app.all("/api/auth{/*path}", toNodeHandler(auth));
+
+// webhook routes: before express.json() middleware
+app.use("/webhook", webhookRouter);
 
 app.use(express.json());
 

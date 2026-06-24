@@ -12,21 +12,23 @@
   },
   "dependencies": {
     "@movie-ticket-booking/auth": "workspace:*",
+    "@movie-ticket-booking/cache": "workspace:*",
     "@movie-ticket-booking/db": "workspace:*",
     "@movie-ticket-booking/env": "workspace:*",
-    "@movie-ticket-booking/cache": "workspace:*",
     "better-auth": "catalog:",
     "cors": "^2.8.5",
     "dotenv": "catalog:",
     "express": "^5.1.0",
+    "stripe": "^22.2.2",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@movie-ticket-booking/shared": "workspace:*",
     "@movie-ticket-booking/config": "workspace:*",
+    "@movie-ticket-booking/shared": "workspace:*",
     "@types/bun": "catalog:",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
+    "@types/stripe": "^8.0.417",
     "tsdown": "^0.21.9",
     "typescript": "catalog:"
   }

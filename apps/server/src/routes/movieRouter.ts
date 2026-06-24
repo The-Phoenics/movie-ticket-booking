@@ -64,6 +64,7 @@ moviesRouter.get(
 
 moviesRouter.post(
   "/:movieId/:theatreMovieId/reserve/:theatreMovieSeatId",
+  authRequired,
   validateRequest(SeatReserveRequestSchema),
   reserveMovieSeatController,
 );
