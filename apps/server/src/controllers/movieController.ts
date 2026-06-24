@@ -146,17 +146,16 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
 
 export async function bookMovieSeatController(req: Request, res: Response, next: NextFunction) {
   try {
-    // const theatreMovieId = req.params.theatreMovieId as string;
+    const theatreMovieId = req.params.theatreMovieId as string;
     const theatreMovieSeatId = req.params.theatreMovieSeatId;
-    // if (!theatreMovieId)
-    //   throw new ServerApiError("Invalid theatreMovieId", 401);
+    if (!theatreMovieId) throw new ServerApiError("Invalid theatreMovieId", 401);
     if (!theatreMovieSeatId) throw new ServerApiError("Invalid theatreMovieSeatId", 401);
 
-    // const paymentIntent = createStripePaymentIntent(500, CURRENCY.USD);
-    // res.status(200).json({ paymentIntent });
+    const amount = Number.parseInt(req.body.amount);
+    const currency = req.body.currency as CURRENCY.USD;
+    if (!amount || isNaN(amount)) throw new ServerApiError("Invalid amount input", 401);
+    if (!currency) throw new ServerApiError("Invalid currency input", 401);
 
-    const amount = 2;
-    const currency = CURRENCY.USD;
     const paymentIntent = await stripe.paymentIntents.create({
       // Amount value must be in the smallest currency unit (e.g., cents for USD)
       amount: convertIntoSmallestCurrencyUnit(amount, currency),
@@ -165,6 +164,9 @@ export async function bookMovieSeatController(req: Request, res: Response, next:
         enabled: true,
       },
     });
+
+    // create draft order and payment with pending states, store payment providers id
+
     res.status(200).json(paymentIntent);
 
     // verify user who's booking with the user who has reserved

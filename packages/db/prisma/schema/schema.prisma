@@ -84,6 +84,7 @@ model Customer {
   name   String
   userId String @unique
 
+  orders Order[]
   ticket Ticket[]
   user   User     @relation(fields: [userId], references: [id])
 }
@@ -154,6 +155,7 @@ model TheatreMovieSeat {
   seat                        Seat                         @relation(fields: [seatId], references: [id])
   theatreMovieSeatReservation TheatreMovieSeatReservation?
   ticket                      Ticket?
+  orders                      Order[]
 }
 
 model TheatreMovieSeatReservation {
@@ -173,4 +175,50 @@ model Ticket {
 
   customer         Customer         @relation(fields: [customerId], references: [id])
   theatreMovieSeat TheatreMovieSeat @relation(fields: [theatreMovieSeatId], references: [id])
+}
+
+enum ORDER_STATUS {
+  SUCCESS
+  PENDING
+  FAILED
+}
+
+enum PAYMENT_STATUS {
+  SUCCESS
+  PENDING
+  FAILED
+}
+
+enum CURRENCY {
+  USD
+  INR
+}
+
+enum PAYMENT_PROVIDER {
+  STRIPE
+}
+
+model Order {
+  id                 String           @id @default(cuid())
+  status             ORDER_STATUS
+  customerId         String           @unique
+  theatreMovieSeatId String           @unique
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  payment            Payment?
+  customer           Customer         @relation(fields: [customerId], references: [id])
+  theatreMovieSeat   TheatreMovieSeat @relation(fields: [theatreMovieSeatId], references: [id])
+}
+
+model Payment {
+  id              String           @id @default(cuid())
+  amount          Int
+  currency        CURRENCY
+  orderId         String           @unique
+  paymentId       String           @unique
+  paymentProvider PAYMENT_PROVIDER
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
 }

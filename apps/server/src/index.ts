@@ -22,7 +22,7 @@ app.use(
 app.all("/api/auth{/*path}", toNodeHandler(auth));
 
 // webhook routes: before express.json() middleware
-app.use("/webhook", webhookRouter);
+app.use("/webhooks", webhookRouter);
 
 app.use(express.json());
 

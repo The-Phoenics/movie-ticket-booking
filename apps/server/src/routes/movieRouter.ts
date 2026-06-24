@@ -34,11 +34,23 @@ const GetTheatreMovieValidationSchema: ValidationSchemaType = {
 
 const SeatReserveRequestSchema: ValidationSchemaType = {
   params: z.object({
-    theatreMovieSeatId: z.string().min(1),
+    movieId: z.string(),
+    theatreMovieId: z.string(),
+    theatreMovieSeatId: z.string(),
   }),
 };
 
-const SeatBookRequestSchema = SeatReserveRequestSchema;
+const SeatBookRequestSchema: ValidationSchemaType = {
+  params: z.object({
+    movieId: z.string(),
+    theatreMovieId: z.string(),
+    theatreMovieSeatId: z.string(),
+  }),
+  body: z.object({
+    currency: z.string(),
+    amount: z.coerce.number(),
+  }),
+};
 
 const moviesRouter: Router = express.Router();
 

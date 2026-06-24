@@ -1,39 +1,26 @@
 import { apiJsonRseponse } from "@/utils";
 import { auth } from "@movie-ticket-booking/auth";
-import {
-  ProfileType,
-  type AuthenticatedRequest,
-} from "@movie-ticket-booking/shared/types";
+import { ProfileType, type AuthenticatedRequest } from "@movie-ticket-booking/shared/types";
 import z from "zod";
 import { fromNodeHeaders } from "better-auth/node";
 import type { NextFunction, Request, Response } from "express";
 import { ServerApiError } from "@/lib";
 
-export async function authRequired(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function authRequired(req: Request, res: Response, next: NextFunction) {
   const session = await auth.api.getSession({
     headers: fromNodeHeaders(req.headers),
   });
 
   const user = session?.user;
   if (!session || !user) {
-    return res
-      .status(401)
-      .json(apiJsonRseponse(false, null, "Unauthorized user session"));
+    return res.status(401).json(apiJsonRseponse(false, null, "Unauthorized user session"));
   }
 
   req.user = user;
   next();
 }
 
-export function validateCustomerRequestRole(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export function validateCustomerRequestRole(req: Request, res: Response, next: NextFunction) {
   const request = req as AuthenticatedRequest;
   const user = request.user;
   if (!user.role || user.role !== ProfileType.CUSTOMER) {
@@ -42,11 +29,7 @@ export function validateCustomerRequestRole(
   next();
 }
 
-export function validateBusinessRequestRole(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export function validateBusinessRequestRole(req: Request, res: Response, next: NextFunction) {
   const request = req as AuthenticatedRequest;
   const user = request.user;
   if (!user.role || user.role !== ProfileType.BUSINESS) {
@@ -71,16 +54,23 @@ export function validateRequest(validationSchema: ValidationSchemaType) {
         if (schema) {
           const result = schema.safeParse(req[key]);
           if (!result.success) {
-            const err = result.error;
+            const err = result.error.issues;
             errors.push(err);
           }
         }
       }
 
-      console.log("Validation error:", errors)
-
-      if (errors.length > 0)
-        throw new ServerApiError("Invalid request input", 401);
+      if (errors.length > 0) {
+        const missingFields: string[][] = [];
+        errors.forEach((err) => {
+          err.forEach((error) => {
+            missingFields.push(error.path as string[]);
+          });
+        });
+        throw new ServerApiError("Invalid request input", 401, {
+          invalidInputFields: missingFields,
+        });
+      }
     } catch (err) {
       next(err);
     }
@@ -94,5 +84,5 @@ export function apiErrorHandler(
   res: Response,
   next: NextFunction,
 ) {
-  res.status(error.status).json(apiJsonRseponse(false, null, error.message));
+  res.status(error.status).json(apiJsonRseponse(false, null, error.message, error.error));
 }

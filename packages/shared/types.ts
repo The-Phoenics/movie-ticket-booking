@@ -5,7 +5,7 @@ import { type Request } from "express";
 declare global {
   namespace Express {
     interface Request {
-      user?: User
+      user?: User;
     }
   }
 }
@@ -13,3 +13,8 @@ declare global {
 export type AuthenticatedRequest = Request & {
   user: User;
 };
+
+export enum CURRENCY {
+  USD = "usd",
+  INR = "inr",
+}

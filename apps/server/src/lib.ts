@@ -9,10 +9,12 @@ import Stripe from "stripe";
 export class ServerApiError extends Error {
   public message: string;
   public status: number;
+  public error: any
 
   constructor(message: string, status: number, error: any = null) {
     super(message);
     this.message = message;
+    this.error = error = error
     this.status = status;
     console.log("Error: ", error)
   }
