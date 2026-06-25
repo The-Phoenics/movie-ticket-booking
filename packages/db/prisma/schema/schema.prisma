@@ -121,7 +121,7 @@ model TheatreMovie {
   movie             Movie              @relation(fields: [movieId], references: [id])
   theatreMovieSeats TheatreMovieSeat[]
 
-  @@unique([theatreId, movieId])
+  @@unique([theatreId, movieId, startTime])
 }
 
 model Seat {

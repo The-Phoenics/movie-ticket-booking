@@ -7,8 +7,8 @@ export async function createStripePaymentIntent(amount: number, currency: CURREN
     const paymentIntent = await stripe.paymentIntents.create({
       // Amount value must be in the smallest currency unit (e.g., cents for USD)
       amount: convertIntoSmallestCurrencyUnit(amount, currency),
-      currency: currency,
-      automatic_payment_methods: {
+      currency: currency, 
+      automatic_payment_methods: {  
         enabled: true,
       },
     });

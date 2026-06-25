@@ -89,6 +89,34 @@
           "col": 2
         }
       ]
+    },
+        {
+      "title": "Babli Movie Theatre",
+      "address": "Paschim Vihar",
+      "city": "Vikaspuri",
+      "country": "India",
+      "seats": [
+        {
+          "row": "A",
+          "col": 1
+        },
+        {
+          "row": "A",
+          "col": 2
+        },
+        {
+          "row": "A",
+          "col": 3
+        },
+        {
+          "row": "B",
+          "col": 1
+        },
+        {
+          "row": "B",
+          "col": 2
+        }
+      ]
     }
   ],
   "movies": [

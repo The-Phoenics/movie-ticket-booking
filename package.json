@@ -37,12 +37,14 @@
   },
   "dependencies": {
     "@movie-ticket-booking/env": "workspace:*",
+    "date-fns": "^4.4.0",
     "dotenv": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@movie-ticket-booking/config": "workspace:*",
     "@types/bun": "catalog:",
+    "@types/date-fns": "^2.6.3",
     "turbo": "^2.9.16",
     "typescript": "catalog:"
   },

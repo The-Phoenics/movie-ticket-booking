@@ -133,11 +133,11 @@ async function main() {
   // Assign movies to theatres (creating theatreMovie and theatreMovieSeat records)
   console.log("Assigning movies to theatres...");
   for (const theatre of createdTheatres) {
-    for (let idx = 0; idx < createdMovies.length; idx++) {
-      const movie = createdMovies[idx];
+    for (let idx = 0; idx < createdMovies.length + 5; idx++) {
+      const movie = createdMovies[idx % createdMovies.length];
 
       const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setDate(tomorrow.getDate() + idx);
       tomorrow.setMinutes(0);
       tomorrow.setSeconds(0);
       tomorrow.setMilliseconds(0);
