@@ -125,12 +125,12 @@ model TheatreMovie {
 }
 
 model Seat {
-  id                String            @id @default(cuid())
+  id                String             @id @default(cuid())
   theatreId         String
   row               String
   col               Int
-  theatre           Theatre           @relation(fields: [theatreId], references: [id])
-  threatreMovieSeat TheatreMovieSeat?
+  theatre           Theatre            @relation(fields: [theatreId], references: [id])
+  threatreMovieSeat TheatreMovieSeat[]
 
   @@unique([row, col])
 }
@@ -148,7 +148,7 @@ enum SEAT_STATUS {
 model TheatreMovieSeat {
   id             String      @id @default(cuid())
   theatreMovieId String
-  seatId         String      @unique
+  seatId         String
   status         SEAT_STATUS @default(AVAILABLE)
   price          Int
 
@@ -157,6 +157,8 @@ model TheatreMovieSeat {
   reservations TheatreMovieSeatReservation[]
   ticket       Ticket?
   orders       Order[]
+
+  @@unique([seatId, theatreMovieId])
 }
 
 model TheatreMovieSeatReservation {
