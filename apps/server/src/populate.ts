@@ -98,7 +98,8 @@ async function main() {
 
     // Create seats for this theatre
     console.log(`Creating ${theatreData.seats.length} seats for theatre: ${theatreData.title}`);
-    await createSeatsBulk(theatreData.seats, createdTheatre.id);
+    const createdSeats = await createSeatsBulk(theatreData.seats, createdTheatre.id);
+    console.log("======= created seats: -- ", createdSeats.length)
 
     createdTheatres.push(createdTheatre);
   }
@@ -132,26 +133,42 @@ async function main() {
 
   // Assign movies to theatres (creating theatreMovie and theatreMovieSeat records)
   console.log("Assigning movies to theatres...");
+
+  const SHOW_TIMES = [
+    { hour: 9, minute: 0 },
+    { hour: 11, minute: 45 },
+    { hour: 14, minute: 30 },
+    { hour: 17, minute: 15 },
+    { hour: 20, minute: 0 },
+    { hour: 22, minute: 45 },
+  ];
+
+  const DAYS_TO_CREATE = 7;
+
   for (const theatre of createdTheatres) {
-    for (let idx = 0; idx < createdMovies.length + 5; idx++) {
-      const movie = createdMovies[idx % createdMovies.length];
+    console.log(`Creating shows for ${theatre.title}`);
 
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + idx);
-      tomorrow.setMinutes(0);
-      tomorrow.setSeconds(0);
-      tomorrow.setMilliseconds(0);
+    for (let day = 0; day < DAYS_TO_CREATE; day++) {
+      const showDate = new Date();
+      showDate.setDate(showDate.getDate() + day);
 
-      const start = new Date(tomorrow);
-      start.setHours(10 + idx * 2); // E.g., 10:00, 12:00, 14:00, 16:00
+      for (let showIndex = 0; showIndex < SHOW_TIMES.length; showIndex++) {
+        const movie = createdMovies[(day * SHOW_TIMES.length + showIndex) % createdMovies.length];
 
-      const end = new Date(tomorrow);
-      end.setHours(12 + idx * 2);
+        const { hour, minute } = SHOW_TIMES[showIndex];
 
-      const price = 150 + idx * 50; // Price: 150, 200, 250, 300
+        const start = new Date(showDate);
+        start.setHours(hour, minute, 0, 0);
 
-      console.log(`Adding show for movie: "${movie.title}" in theatre: "${theatre.title}" from ${start.toISOString()} to ${end.toISOString()}`);
-      await addMovieToTheatre(theatre.id, movie.id, start, end, price);
+        const end = new Date(start);
+        end.setHours(end.getHours() + 2, end.getMinutes() + 30);
+
+        const price = 150 + (showIndex % 4) * 50;
+
+        console.log(`${theatre.title} | ${movie.title} | ${start.toLocaleString()}`);
+
+        await addMovieToTheatre(theatre.id, movie.id, start, end, price);
+      }
     }
   }
 

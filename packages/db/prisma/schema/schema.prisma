@@ -132,7 +132,7 @@ model Seat {
   theatre           Theatre            @relation(fields: [theatreId], references: [id])
   threatreMovieSeat TheatreMovieSeat[]
 
-  @@unique([row, col])
+  @@unique([theatreId, row, col])
 }
 
 // enum SEAT_CLASS {

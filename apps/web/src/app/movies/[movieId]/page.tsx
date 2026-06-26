@@ -98,6 +98,7 @@ export default function MoviePage() {
     );
   }
 
+  console.log("data:", data)
   const { movie, datesWithTheatreTimings } = data;
 
   // The backend keys groups by a formatted display string ("dd MMMM yyyy"),
@@ -222,10 +223,12 @@ export default function MoviePage() {
                                           ? undefined
                                           : "This showtime is missing an id (backend data issue)"
                                       }
-                                      className="flex items-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium transition hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-white/10 disabled:hover:bg-white/5 disabled:hover:text-inherit"
+                                      className="flex items-center hover:cursor-pointer gap-1.5 rounded-md border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium transition hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-white/10 disabled:hover:bg-white/5 disabled:hover:text-inherit"
                                     >
                                       <Clock className="h-3.5 w-3.5" />
                                       {formatTime(slot.start)}
+                                      <span className="flex justify-center items-center">{" — "}</span>
+                                      {formatTime(slot.end)}
                                     </button>
                                   );
                                 })}

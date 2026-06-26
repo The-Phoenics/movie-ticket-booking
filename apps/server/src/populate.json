@@ -8,8 +8,14 @@
     },
     {
       "name": "johnc",
-      "email": "jane.customer@example.com",
+      "email": "john.customer@example.com",
       "password": "john customer",
+      "role": "CUSTOMER"
+    },
+    {
+      "name": "phoenics",
+      "email": "phoenics.customer@example.com",
+      "password": "phoenics customer",
       "role": "CUSTOMER"
     }
   ],
@@ -20,46 +26,11 @@
       "city": "New York",
       "country": "USA",
       "seats": [
-        {
-          "row": "A",
-          "col": 1
-        },
-        {
-          "row": "A",
-          "col": 2
-        },
-        {
-          "row": "A",
-          "col": 3
-        },
-        {
-          "row": "A",
-          "col": 4
-        },
-        {
-          "row": "A",
-          "col": 5
-        },
-        {
-          "row": "B",
-          "col": 1
-        },
-        {
-          "row": "B",
-          "col": 2
-        },
-        {
-          "row": "B",
-          "col": 3
-        },
-        {
-          "row": "B",
-          "col": 4
-        },
-        {
-          "row": "B",
-          "col": 5
-        }
+        {"row":"A","col":1},{"row":"A","col":2},{"row":"A","col":3},{"row":"A","col":4},{"row":"A","col":5},{"row":"A","col":6},{"row":"A","col":7},{"row":"A","col":8},
+        {"row":"B","col":1},{"row":"B","col":2},{"row":"B","col":3},{"row":"B","col":4},{"row":"B","col":5},{"row":"B","col":6},{"row":"B","col":7},{"row":"B","col":8},
+        {"row":"C","col":1},{"row":"C","col":2},{"row":"C","col":3},{"row":"C","col":4},{"row":"C","col":5},{"row":"C","col":6},{"row":"C","col":7},{"row":"C","col":8},
+        {"row":"D","col":1},{"row":"D","col":2},{"row":"D","col":3},{"row":"D","col":4},{"row":"D","col":5},{"row":"D","col":6},{"row":"D","col":7},{"row":"D","col":8},
+        {"row":"E","col":1},{"row":"E","col":2},{"row":"E","col":3},{"row":"E","col":4},{"row":"E","col":5},{"row":"E","col":6},{"row":"E","col":7},{"row":"E","col":8}
       ]
     },
     {
@@ -68,77 +39,119 @@
       "city": "Vikaspuri",
       "country": "India",
       "seats": [
-        {
-          "row": "A",
-          "col": 1
-        },
-        {
-          "row": "A",
-          "col": 2
-        },
-        {
-          "row": "A",
-          "col": 3
-        },
-        {
-          "row": "B",
-          "col": 1
-        },
-        {
-          "row": "B",
-          "col": 2
-        }
+        {"row":"A","col":1},{"row":"A","col":2},{"row":"A","col":3},{"row":"A","col":4},{"row":"A","col":5},{"row":"A","col":6},
+        {"row":"B","col":1},{"row":"B","col":2},{"row":"B","col":3},{"row":"B","col":4},{"row":"B","col":5},{"row":"B","col":6},
+        {"row":"C","col":1},{"row":"C","col":2},{"row":"C","col":3},{"row":"C","col":4},{"row":"C","col":5},{"row":"C","col":6}
       ]
     },
-        {
+    {
       "title": "Babli Movie Theatre",
       "address": "Paschim Vihar",
       "city": "Vikaspuri",
       "country": "India",
       "seats": [
-        {
-          "row": "A",
-          "col": 1
-        },
-        {
-          "row": "A",
-          "col": 2
-        },
-        {
-          "row": "A",
-          "col": 3
-        },
-        {
-          "row": "B",
-          "col": 1
-        },
-        {
-          "row": "B",
-          "col": 2
-        }
+        {"row":"A","col":1},{"row":"A","col":2},{"row":"A","col":3},{"row":"A","col":4},{"row":"A","col":5},
+        {"row":"B","col":1},{"row":"B","col":2},{"row":"B","col":3},{"row":"B","col":4},{"row":"B","col":5},
+        {"row":"C","col":1},{"row":"C","col":2},{"row":"C","col":3},{"row":"C","col":4},{"row":"C","col":5}
+      ]
+    },
+    {
+      "title": "Cinepolis",
+      "address": "Rajouri Garden",
+      "city": "Delhi",
+      "country": "India",
+      "seats": [
+        {"row":"A","col":1},{"row":"A","col":2},{"row":"A","col":3},{"row":"A","col":4},{"row":"A","col":5},{"row":"A","col":6},
+        {"row":"B","col":1},{"row":"B","col":2},{"row":"B","col":3},{"row":"B","col":4},{"row":"B","col":5},{"row":"B","col":6},
+        {"row":"C","col":1},{"row":"C","col":2},{"row":"C","col":3},{"row":"C","col":4},{"row":"C","col":5},{"row":"C","col":6},
+        {"row":"D","col":1},{"row":"D","col":2},{"row":"D","col":3},{"row":"D","col":4},{"row":"D","col":5},{"row":"D","col":6}
+      ]
+    },
+    {
+      "title": "Miraj Cinemas",
+      "address": "Dwarka Sector 12",
+      "city": "Delhi",
+      "country": "India",
+      "seats": [
+        {"row":"A","col":1},{"row":"A","col":2},{"row":"A","col":3},{"row":"A","col":4},
+        {"row":"B","col":1},{"row":"B","col":2},{"row":"B","col":3},{"row":"B","col":4},
+        {"row":"C","col":1},{"row":"C","col":2},{"row":"C","col":3},{"row":"C","col":4},
+        {"row":"D","col":1},{"row":"D","col":2},{"row":"D","col":3},{"row":"D","col":4}
       ]
     }
   ],
   "movies": [
     {
       "title": "The Dark Knight",
-      "description": "A movie about a movie",
+      "description": "A movie about Batman.",
       "rating": 5
     },
     {
       "title": "Lord of the Rings",
-      "description": "A movie about a lord of the rings",
+      "description": "Epic fantasy adventure.",
       "rating": 5
     },
     {
       "title": "The Matrix",
-      "description": "Mindblowing movie",
-      "rating": 4
+      "description": "Mind-bending sci-fi.",
+      "rating": 5
     },
     {
       "title": "The Avengers",
-      "description": "A movie about the avengers",
-      "rating": 3
+      "description": "Marvel superhero team-up.",
+      "rating": 4
+    },
+    {
+      "title": "Interstellar",
+      "description": "Space exploration and time.",
+      "rating": 5
+    },
+    {
+      "title": "Inception",
+      "description": "Dream within a dream.",
+      "rating": 5
+    },
+    {
+      "title": "Avatar",
+      "description": "Pandora comes alive.",
+      "rating": 4
+    },
+    {
+      "title": "Spider-Man: No Way Home",
+      "description": "Multiverse adventure.",
+      "rating": 5
+    }
+  ],
+  "showTimings": [
+    {
+      "theatre": "PVR Cinemas",
+      "date": "2026-07-01",
+      "shows": [
+        {
+          "movie": "The Dark Knight",
+          "time": "09:00"
+        },
+        {
+          "movie": "The Matrix",
+          "time": "11:45"
+        },
+        {
+          "movie": "Interstellar",
+          "time": "14:30"
+        },
+        {
+          "movie": "Inception",
+          "time": "17:15"
+        },
+        {
+          "movie": "Spider-Man: No Way Home",
+          "time": "20:00"
+        },
+        {
+          "movie": "Avatar",
+          "time": "22:45"
+        }
+      ]
     }
   ]
 }

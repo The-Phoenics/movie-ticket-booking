@@ -68,6 +68,10 @@ export async function getTheatreMovieSeatsController(
     const theatreMovieId = req.params.theatreMovieId as string;
     if (!theatreMovieId) throw new ServerApiError("Invalid theatre movie id provided", 401);
 
+    const theatreMovie = await prisma.theatreMovie.findUnique({ where: { id: theatreMovieId } })
+    console.log(theatreMovie)
+    if (!theatreMovie) throw new ServerApiError("Invalid theatre movie id provided", 401);
+
     const seats = await getTheatreMovieSeats(theatreMovieId);
     return res
       .status(200)

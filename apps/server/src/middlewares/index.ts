@@ -1,6 +1,10 @@
 import { apiJsonRseponse } from "@/utils";
 import { auth } from "@movie-ticket-booking/auth";
-import { ProfileType, type AuthenticatedRequest, type User } from "@movie-ticket-booking/shared/types";
+import {
+  ProfileType,
+  type AuthenticatedRequest,
+  type User,
+} from "@movie-ticket-booking/shared/types";
 import z from "zod";
 import { fromNodeHeaders } from "better-auth/node";
 import type { NextFunction, Request, Response } from "express";
@@ -8,15 +12,15 @@ import { ServerApiError } from "@/lib";
 
 export async function authRequired(req: Request, res: Response, next: NextFunction) {
   // TESTING:
-  // const testUser: User = {
-  //   id: "OaOUAEjkiMQXZUbeoK1TeXnls709sYcs",
-  //   name: "john business",
-  //   email: "john.business@example.com",
-  //   emailVerified: true,
-  //   role: "BUSINESS"
-  // };
-  // req.user = testUser
-  // next()
+  const testUser: User = {
+    name: "phoenics",
+    email: "phoenics.customer@example.com",
+    emailVerified: false,
+    role: "CUSTOMER",
+    id: "vez2VPe4mtGDWw8d8D8Lb7hrsPv9Sg1I",
+  };
+  req.user = testUser;
+  return next();
 
   const session = await auth.api.getSession({
     headers: fromNodeHeaders(req.headers),

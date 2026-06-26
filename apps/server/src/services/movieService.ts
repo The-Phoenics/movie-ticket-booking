@@ -123,6 +123,8 @@ export async function getTheatreMovieSeats(theatreMovieId: string) {
         },
       },
     });
+    // TODO: Also return the user with seat for whom the seat is reserved, so frontend won't show the seat as reserved the user for whom its already reserved
+
     return {
       theatreMovieSeatsData: seats,
     };
