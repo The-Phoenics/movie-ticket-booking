@@ -1,7 +1,7 @@
 import { ServerApiError } from "@/lib";
 import prisma from "@movie-ticket-booking/db";
 import type { BatchPayload } from "../../../../packages/db/prisma/generated/internal/prismaNamespace";
-import { SEAT_STATUS } from "@movie-ticket-booking/shared/types";
+import { SEAT_STATUS, type TheatreMovieSeat } from "@movie-ticket-booking/shared/types";
 import { SEAT_RESERVATION_DURATION } from "@movie-ticket-booking/shared/constants";
 
 type Seat = {
@@ -79,7 +79,7 @@ export async function reserveTheatreMovieSeat(customerId: string, theatreMovieSe
               status: SEAT_STATUS.SOLD, // unavailable
             },
           }),
-          // udpate reservation
+          // create a new reservation for seat
           tx.theatreMovieSeatReservation.create({
             data: {
               customerId: customerId,
@@ -120,4 +120,32 @@ export async function verifySeatReservationForUser(customerId: string, theatreMo
     return false;
   }
   return true;
+}
+
+export async function updateTheatreMovieSeatExpiredReservation(
+  theatreMovieSeats: ({ id: string } & Partial<TheatreMovieSeat>)[],
+) {
+  try {
+    const ids = theatreMovieSeats.map((seat) => seat.id);
+    const result = await prisma.theatreMovieSeat.updateMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      data: {
+        status: SEAT_STATUS.AVAILABLE,
+      },
+    });
+    return {
+      seatsToUpdate: ids.length,
+      seatsUpdated: result.count,
+    };
+  } catch (err) {
+    throw new ServerApiError(
+      "DB Error: Failed to update theatre movie expired reservation seats status",
+      500,
+      err,
+    );
+  }
 }

@@ -224,9 +224,11 @@ export async function bookMovieSeatController(req: Request, res: Response, next:
         },
       );
     } catch (err) {
+      console.log("error:", err)
       throw new ServerApiError(
         "Failed to create payment intent to buy ticket with order.id: " + result.id,
         500,
+        err
       );
     }
 
@@ -253,6 +255,7 @@ export async function bookMovieSeatController(req: Request, res: Response, next:
       }),
     );
   } catch (err) {
+    console.log("Error booking movie seat: ", err)
     next(err);
   }
 }

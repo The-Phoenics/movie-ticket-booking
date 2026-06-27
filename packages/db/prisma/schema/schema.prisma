@@ -206,8 +206,8 @@ enum PAYMENT_PROVIDER {
 model Order {
   id                 String           @id @default(cuid())
   status             ORDER_STATUS
-  customerId         String           @unique
-  theatreMovieSeatId String           @unique
+  customerId         String
+  theatreMovieSeatId String
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
   payment            Payment?

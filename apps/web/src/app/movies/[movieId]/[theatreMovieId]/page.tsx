@@ -22,33 +22,93 @@ interface TheatreMovieSeatDto {
   };
 }
 
+interface TheatreData {
+  id: string;
+  title: string;
+  address: string;
+  city: string;
+  country: string;
+}
+
 interface ApiResponse<T> {
   success: boolean;
   data: T;
   message: string;
 }
 
+interface TheatreMovieSeatsData {
+  theatreMovieSeatsData: TheatreMovieSeatDto[];
+  theatreData?: TheatreData;
+  showTime?: { start: string; end: string };
+  movieTitle?: string;
+}
+
 async function fetchTheatreMovieSeats(
   movieId: string,
   theatreMovieId: string,
-): Promise<TheatreMovieSeatDto[]> {
-  console.log(env.NEXT_PUBLIC_SERVER_URL);
-  const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/movies/${movieId}/${theatreMovieId}`, {
+): Promise<TheatreMovieSeatsData> {
+  // Fetch seats
+  const seatsRes = await fetch(
+    `${env.NEXT_PUBLIC_SERVER_URL}/movies/${movieId}/${theatreMovieId}`,
+    { cache: "no-store" },
+  );
+
+  if (!seatsRes.ok) {
+    throw new Error(`Failed to fetch seats: ${seatsRes.status}`);
+  }
+
+  const seatsJson: ApiResponse<{ theatreMovieSeatsData: TheatreMovieSeatDto[] }> =
+    await seatsRes.json();
+
+  if (!seatsJson.success) {
+    throw new Error(seatsJson.message || "Failed to fetch theatre movie seats");
+  }
+
+  // Fetch movie details (to get theatre + show time info)
+  const movieRes = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/movies/${movieId}`, {
     cache: "no-store",
   });
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch seats: ${res.status}`);
+  let theatreData: TheatreData | undefined;
+  let showTime: { start: string; end: string } | undefined;
+  let movieTitle: string | undefined;
+
+  if (movieRes.ok) {
+    const movieJson = await movieRes.json();
+    const data = movieJson?.data;
+    movieTitle = data?.movie?.title;
+
+    // Walk the datesWithTheatreTimings map to find the matching theatreMovieId slot
+    const dateMap: Record<
+      string,
+      Record<
+        string,
+        {
+          theatreData: TheatreData;
+          dates: { start: string; end: string; theatreMovieId: string }[];
+        }
+      >
+    > = data?.datesWithTheatreTimings ?? {};
+
+    outer: for (const dateKey of Object.keys(dateMap)) {
+      for (const theatreId of Object.keys(dateMap[dateKey])) {
+        const entry = dateMap[dateKey][theatreId];
+        const slot = entry.dates.find((d) => d.theatreMovieId === theatreMovieId);
+        if (slot) {
+          theatreData = entry.theatreData;
+          showTime = { start: slot.start, end: slot.end };
+          break outer;
+        }
+      }
+    }
   }
 
-  const json: ApiResponse<TheatreMovieSeatDto[]> = await res.json();
-  console.log("json data:", json);
-
-  if (!json.success) {
-    throw new Error(json.message || "Failed to fetch theatre movie seats");
-  }
-
-  return json.data;
+  return {
+    ...seatsJson.data,
+    theatreData,
+    showTime,
+    movieTitle,
+  };
 }
 
 function useTheatreMovieSeats(movieId: string, theatreMovieId: string) {
@@ -99,7 +159,7 @@ export default function TheatreMoviePage() {
     theatreMovieId: string;
   }>();
 
-  const { data: seats, isLoading, isError } = useTheatreMovieSeats(movieId, theatreMovieId);
+  const { data, isLoading, isError } = useTheatreMovieSeats(movieId, theatreMovieId);
   const [selectedSeat, setSelectedSeat] = useState<TheatreMovieSeatDto | null>(null);
   const [isProceeding, setIsProceeding] = useState<boolean>(false);
   const [isBuying, setIsBuying] = useState<boolean>(false);
@@ -108,18 +168,18 @@ export default function TheatreMoviePage() {
     const fetchUrl = `${env.NEXT_PUBLIC_SERVER_URL}/movies/${movieId}/${theatreMovieId}/reserve/${selectedSeat?.id}`;
     const res = await fetch(fetchUrl, {
       method: "POST",
+      credentials: "include",
     });
 
     if (!res.ok) return;
-    const data = await res.json();
-    console.log("reserve seat data: ", data);
-    return data;
+    const resData = await res.json();
+    console.log("reserve seat data: ", resData);
+    return resData;
   };
 
   const proceedToBuyMutation = useMutation({
     mutationFn: reserveSeatFn,
     onSuccess: () => {
-      // router.push(`/buy` as Route);
       setIsProceeding(false);
       setIsBuying(true);
     },
@@ -143,7 +203,7 @@ export default function TheatreMoviePage() {
     );
   }
 
-  if (isError || !seats) {
+  if (isError || !data) {
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center gap-2 text-center">
         <p className="text-sm font-medium text-zinc-300">Couldn't load seats for this show.</p>
@@ -152,12 +212,21 @@ export default function TheatreMoviePage() {
     );
   }
 
+  const { theatreMovieSeatsData: seats, theatreData, showTime, movieTitle } = data;
+
   return (
     <div className="min-h-screen bg-zinc-950 pb-28 pt-6">
-      {isBuying && <BuyTheatreMovieSeat />}
+      {isBuying && selectedSeat && (
+        <BuyTheatreMovieSeat
+          selectedSeat={selectedSeat}
+          movieTitle={movieTitle ?? "Movie"}
+          theatreData={theatreData ?? null}
+          showTime={showTime ?? null}
+        />
+      )}
       {!isBuying && (
         <SelectTheatreMovieSeat
-          seats={seats.theatreMovieSeatsData}
+          seats={seats}
           selectedSeatId={selectedSeat?.id ?? null}
           onSelectSeat={handleSelectSeat}
         />

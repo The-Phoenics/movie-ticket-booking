@@ -3,6 +3,7 @@ import prisma from "@movie-ticket-booking/db";
 import type { Theatre, TheatreMovie } from "@movie-ticket-booking/shared/types";
 import type { MovieCreateInput } from "../../../../packages/db/prisma/generated/internal/prismaNamespace";
 import { format } from "date-fns";
+import { updateTheatreMovieSeatExpiredReservation } from "./seatService";
 
 export async function createMovie(movieData: MovieCreateInput) {
   try {
@@ -121,10 +122,39 @@ export async function getTheatreMovieSeats(theatreMovieId: string) {
             col: true,
           },
         },
+        reservations: {
+          select: {
+            reservedAt: true,
+            duration: true,
+          },
+        },
       },
     });
     // TODO: Also return the user with seat for whom the seat is reserved, so frontend won't show the seat as reserved the user for whom its already reserved
 
+    // filter all the seats with expired reservation
+    const seatsWithExpiredReservation = seats.filter((s) => {
+      let recentReservation = s.reservations[0];
+      s.reservations.forEach((reservation) => {
+        if (!recentReservation || reservation.reservedAt > recentReservation.reservedAt) {
+          recentReservation = reservation;
+        }
+      });
+
+      if (!recentReservation) return false;
+      const reservedAt = recentReservation.reservedAt;
+      const duration = recentReservation.duration;
+      const expireAt = new Date(reservedAt);
+      expireAt.setMinutes(expireAt.getMinutes() + duration);
+
+      const currDate = new Date();
+      if (currDate > expireAt) {
+        return true;
+      }
+      return false;
+    });
+
+    await updateTheatreMovieSeatExpiredReservation(seatsWithExpiredReservation);
     return {
       theatreMovieSeatsData: seats,
     };

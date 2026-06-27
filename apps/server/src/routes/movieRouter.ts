@@ -83,6 +83,7 @@ moviesRouter.post(
 
 moviesRouter.post(
   "/:movieId/:theatreMovieId/book/:theatreMovieSeatId",
+  authRequired,
   validateRequest(SeatBookRequestSchema),
   bookMovieSeatController,
 );

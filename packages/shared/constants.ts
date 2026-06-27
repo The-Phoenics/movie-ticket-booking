@@ -1,2 +1,2 @@
 
-export const SEAT_RESERVATION_DURATION = 10; // minutes
+export const SEAT_RESERVATION_DURATION = 5; // minutes

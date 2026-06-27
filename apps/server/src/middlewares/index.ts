@@ -17,7 +17,7 @@ export async function authRequired(req: Request, res: Response, next: NextFuncti
     email: "phoenics.customer@example.com",
     emailVerified: false,
     role: "CUSTOMER",
-    id: "vez2VPe4mtGDWw8d8D8Lb7hrsPv9Sg1I",
+    id: "hsJp4XkzKdXpsYzl0oRDuxSFQFd81Kh7",
   };
   req.user = testUser;
   return next();
