@@ -26,10 +26,10 @@ export async function createMovieContoller(req: Request, res: Response, next: Ne
       throw new ServerApiError("Invalid user session req.user not found", 401);
     }
 
-    let { title, description, rating, crew } = req.body;
+    let { title, description, rating, crew, tags } = req.body;
     if (!rating) rating = 0;
     if (!crew) crew = {};
-    const movieData = { title, description, rating, crew };
+    const movieData = { title, description, rating, crew, tags };
     const createdMovie = await createMovie(movieData);
     res.status(201).json(apiJsonRseponse(true, createdMovie, "Successfully created movie", null));
   } catch (err) {

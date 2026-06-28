@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@/components/auth-provider";
 import { env } from "@movie-ticket-booking/env/web";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Star, Clock, Filter, X, Clapperboard, ChevronRight, Flame, TrendingUp } from "lucide-react";
@@ -155,6 +156,8 @@ function MovieCard({ movie, index }: { movie: Movie; index: number }) {
 }
 
 export default function MoviesPage() {
+  const user = useAuth()
+  console.log("user: ", user)
   const [search, setSearch] = useState("");
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("rating");

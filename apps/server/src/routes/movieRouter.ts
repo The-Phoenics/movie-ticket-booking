@@ -16,6 +16,7 @@ const CreateMovieRequestSchema: ValidationSchemaType = {
     description: z.string().min(1),
     rating: z.number().min(0).optional(),
     crew: z.object().optional(),
+    tags: z.array(z.string()).optional(),
   }),
 };
 

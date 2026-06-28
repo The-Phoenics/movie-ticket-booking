@@ -3,16 +3,25 @@
 import { ThemeProvider } from "./theme-provider";
 import { Toaster } from "@movie-ticket-booking/ui/components/sonner";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
+import AuthProvider from "./auth-provider";
 
 const queryClient = new QueryClient();
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-        {children}
-        <Toaster richColors />
-      </ThemeProvider>
-    </QueryClientProvider>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+          scriptProps={{ type: 'application/json' }}
+        >
+          {children}
+          <Toaster richColors />
+        </ThemeProvider>
+      </QueryClientProvider>
+    </AuthProvider>
   );
 }

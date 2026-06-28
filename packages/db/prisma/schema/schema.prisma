@@ -108,6 +108,7 @@ model Movie {
   description  String
   rating       Int
   crew         Json           @default("{}")
+  tags         MOVIE_TAG[]
   theateMovies TheatreMovie[]
 }
 
@@ -226,4 +227,54 @@ model Payment {
   updatedAt       DateTime         @updatedAt
 
   order Order @relation(fields: [orderId], references: [id])
+}
+
+enum MOVIE_TAG {
+  // Primary Genres
+  ACTION
+  ADVENTURE
+  COMEDY
+  CRIME
+  DRAMA
+  DOCUMENTARY
+  FAMILY
+  FANTASY
+  HORROR
+  MUSICAL
+  MYSTERY
+  ROMANCE
+  SCIENCE_FICTION
+  THRILLER
+  WESTERN
+  WAR
+
+  // Subgenres
+  SUPERHERO
+  MARTIAL_ARTS
+  SPY
+  HEIST
+  ROMANTIC_COMEDY
+  BLACK_COMEDY
+  SATIRE
+  SLAPSTICK
+  FILM_NOIR
+  WHODUNIT
+  DETECTIVE
+  TRUE_CRIME
+  BIOGRAPHY
+  HISTORICAL
+  MELODRAMA
+  COMING_OF_AGE
+  CYBERPUNK
+  SPACE_OPERA
+  DYSTOPIAN
+  STEAMPUNK
+  SLASHER
+  PSYCHOLOGICAL
+  BODY_HORROR
+  ZOMBIE
+  SUPERNATURAL
+  NEO_WESTERN
+  SPAGHETTI_WESTERN
+  EMPIRE_WESTERN
 }
