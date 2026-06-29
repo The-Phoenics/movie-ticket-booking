@@ -1,0 +1,414 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
+import { env } from "@movie-ticket-booking/env/web";
+import { toast } from "sonner";
+import { User, Building2, Mail, MapPin, Tag, Loader2, Save, ArrowLeft, Film } from "lucide-react";
+import Link from "next/link";
+import type { Route } from "next";
+
+interface CustomerProfile {
+  id: string;
+  name: string;
+}
+
+interface TheatreProfile {
+  id: string;
+  title: string;
+  address: string;
+  city: string;
+  country: string;
+}
+
+interface ProfileData {
+  user: {
+    id: string;
+    email: string;
+    name: string | null;
+    role: "CUSTOMER" | "BUSINESS";
+    isOnboarded: boolean;
+    customer: CustomerProfile | null;
+    theatre: TheatreProfile | null;
+  };
+}
+
+// ─── Field component ──────────────────────────────────────────────────────────
+
+function Field({
+  label,
+  id,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+  icon: Icon,
+  disabled,
+}: {
+  label: string;
+  id: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  placeholder?: string;
+  icon?: React.ElementType;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label htmlFor={id} className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+        {label}
+      </label>
+      <div className="relative">
+        {Icon && (
+          <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500 pointer-events-none" />
+        )}
+        <input
+          id={id}
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          disabled={disabled}
+          className={`w-full rounded-xl border border-zinc-700 bg-zinc-800/60 py-3 text-sm text-zinc-100 placeholder-zinc-600 outline-none transition focus:border-red-500/60 focus:ring-2 focus:ring-red-500/15 disabled:opacity-50 disabled:cursor-not-allowed ${Icon ? "pl-10 pr-4" : "px-4"}`}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ─── Customer form ────────────────────────────────────────────────────────────
+
+function CustomerProfileForm({
+  profile,
+  email,
+  onSave,
+  isSaving,
+}: {
+  profile: CustomerProfile;
+  email: string;
+  onSave: (data: { name: string; email: string }) => void;
+  isSaving: boolean;
+}) {
+  const [name, setName] = useState(profile.name);
+  const [emailVal, setEmailVal] = useState(email);
+
+  const isDirty = name !== profile.name || emailVal !== email;
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSave({ name, email: emailVal });
+      }}
+      className="space-y-4"
+    >
+      <Field
+        label="Display Name"
+        id="customer-name"
+        value={name}
+        onChange={setName}
+        placeholder="Ada Lovelace"
+        icon={Tag}
+      />
+      <Field
+        label="Email"
+        id="customer-email"
+        type="email"
+        value={emailVal}
+        onChange={setEmailVal}
+        placeholder="ada@example.com"
+        icon={Mail}
+      />
+      <button
+        type="submit"
+        disabled={isSaving || !isDirty || !name.trim() || !emailVal.trim()}
+        className="flex items-center gap-2 rounded-xl bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-900/40 transition-all hover:bg-red-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400 disabled:shadow-none"
+      >
+        {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+        {isSaving ? "Saving…" : "Save Changes"}
+      </button>
+    </form>
+  );
+}
+
+// ─── Business form ────────────────────────────────────────────────────────────
+
+function BusinessProfileForm({
+  profile,
+  email,
+  onSave,
+  isSaving,
+}: {
+  profile: TheatreProfile;
+  email: string;
+  onSave: (data: {
+    email: string;
+    title: string;
+    address: string;
+    city: string;
+    country: string;
+  }) => void;
+  isSaving: boolean;
+}) {
+  const [emailVal, setEmailVal] = useState(email);
+  const [title, setTitle] = useState(profile.title);
+  const [address, setAddress] = useState(profile.address);
+  const [city, setCity] = useState(profile.city);
+  const [country, setCountry] = useState(profile.country);
+
+  const isDirty =
+    emailVal !== email ||
+    title !== profile.title ||
+    address !== profile.address ||
+    city !== profile.city ||
+    country !== profile.country;
+
+  const isValid =
+    emailVal.trim() && title.trim() && address.trim() && city.trim() && country.trim();
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSave({ email: emailVal, title, address, city, country });
+      }}
+      className="space-y-4"
+    >
+      <Field
+        label="Theatre Name"
+        id="theatre-title"
+        value={title}
+        onChange={setTitle}
+        placeholder="Cineplex Downtown"
+        icon={Building2}
+      />
+      <Field
+        label="Email"
+        id="business-email"
+        type="email"
+        value={emailVal}
+        onChange={setEmailVal}
+        placeholder="theatre@example.com"
+        icon={Mail}
+      />
+      <Field
+        label="Street Address"
+        id="theatre-address"
+        value={address}
+        onChange={setAddress}
+        placeholder="12 Cinema Lane"
+        icon={MapPin}
+      />
+      <div className="grid grid-cols-2 gap-3">
+        <Field
+          label="City"
+          id="theatre-city"
+          value={city}
+          onChange={setCity}
+          placeholder="Mumbai"
+        />
+        <Field
+          label="Country"
+          id="theatre-country"
+          value={country}
+          onChange={setCountry}
+          placeholder="India"
+        />
+      </div>
+      <button
+        type="submit"
+        disabled={isSaving || !isDirty || !isValid}
+        className="flex items-center gap-2 rounded-xl bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-900/40 transition-all hover:bg-red-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400 disabled:shadow-none"
+      >
+        {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+        {isSaving ? "Saving…" : "Save Changes"}
+      </button>
+    </form>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export default function ProfilePage() {
+  const router = useRouter();
+  const { data: session, isPending: sessionPending } = authClient.useSession();
+
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (sessionPending) return;
+    if (!session) {
+      router.replace("/auth" as Route);
+      return;
+    }
+
+    fetch(`${env.NEXT_PUBLIC_SERVER_URL}/profile`, { credentials: "include" })
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.success) setProfile(json.data);
+        else toast.error("Failed to load profile");
+      })
+      .catch(() => toast.error("Failed to load profile"))
+      .finally(() => setIsLoading(false));
+  }, [sessionPending, session]);
+
+  const handleSave = async (data: Record<string, string>) => {
+    setIsSaving(true);
+    try {
+      const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/profile`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        toast.error(json.message || "Update failed");
+      } else {
+        toast.success("Profile updated!");
+        // Refresh local profile state with new values
+        setProfile((prev) =>
+          prev
+            ? {
+                user: {
+                  ...prev.user,
+                  email: data.email ?? prev.user.email,
+                  customer: prev.user.customer
+                    ? { ...prev.user.customer, name: data.name ?? prev.user.customer.name }
+                    : null,
+                  theatre: prev.user.theatre
+                    ? {
+                        ...prev.user.theatre,
+                        title: data.title ?? prev.user.theatre.title,
+                        address: data.address ?? prev.user.theatre.address,
+                        city: data.city ?? prev.user.theatre.city,
+                        country: data.country ?? prev.user.theatre.country,
+                      }
+                    : null,
+                },
+              }
+            : prev,
+        );
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (sessionPending || isLoading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-zinc-500" />
+      </div>
+    );
+  }
+
+  if (!profile) return null;
+
+  const { user } = profile;
+  const isCustomer = user.role === "CUSTOMER";
+  const initials = (user.name ?? user.email)
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
+  return (
+    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+      {/* Background glow */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full bg-red-600/8 blur-3xl" />
+      </div>
+
+      {/* Nav */}
+      <header className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="max-w-2xl mx-auto px-6 h-14 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 group">
+            <Film className="h-5 w-5 text-red-500" />
+            <span className="font-semibold tracking-tight text-zinc-100">
+              Reel<span className="text-red-500">.</span>
+            </span>
+          </Link>
+          <Link
+            href={"/movies" as Route}
+            className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to movies
+          </Link>
+        </div>
+      </header>
+
+      <main className="max-w-2xl mx-auto px-6 py-10 space-y-8">
+        {/* Avatar + identity */}
+        <div className="flex items-center gap-5">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-red-600/15 text-red-400 text-xl font-bold select-none">
+            {initials}
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-zinc-100">
+              {isCustomer ? user.customer?.name : user.theatre?.title}
+            </h1>
+            <div className="mt-1 flex items-center gap-2">
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                  isCustomer ? "bg-red-600/15 text-red-400" : "bg-orange-600/15 text-orange-400"
+                }`}
+              >
+                {isCustomer ? <User className="h-3 w-3" /> : <Building2 className="h-3 w-3" />}
+                {isCustomer ? "Movie-Goer" : "Theatre Owner"}
+              </span>
+              <span className="text-sm text-zinc-500">{user.email}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Form card */}
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-red-700 via-red-500 to-orange-400" />
+          <div className="px-6 py-6">
+            <h2 className="text-sm font-semibold text-zinc-300 mb-5">
+              {isCustomer ? "Account Details" : "Theatre Details"}
+            </h2>
+
+            {isCustomer && user.customer && (
+              <CustomerProfileForm
+                profile={user.customer}
+                email={user.email}
+                onSave={handleSave}
+                isSaving={isSaving}
+              />
+            )}
+
+            {!isCustomer && user.theatre && (
+              <BusinessProfileForm
+                profile={user.theatre}
+                email={user.email}
+                onSave={handleSave}
+                isSaving={isSaving}
+              />
+            )}
+
+            {isCustomer && !user.customer && (
+              <p className="text-sm text-zinc-500">
+                No customer profile found. Please complete onboarding.
+              </p>
+            )}
+            {!isCustomer && !user.theatre && (
+              <p className="text-sm text-zinc-500">
+                No theatre profile found. Please complete onboarding.
+              </p>
+            )}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

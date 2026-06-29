@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/components/auth-provider";
+import UserMenu from "@/components/user-menu";
 import { env } from "@movie-ticket-booking/env/web";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Star, Clock, Filter, X, Clapperboard, ChevronRight, Flame, TrendingUp } from "lucide-react";
@@ -217,6 +218,9 @@ export default function MoviesPage() {
               <a className="nav-link">Coming Soon</a>
               <a className="nav-link">Events</a>
             </nav>
+            <div style={{ marginLeft: "auto" }}>
+              <UserMenu />
+            </div>
           </div>
 
           {/* Hero copy */}
