@@ -33,13 +33,20 @@ export function createAuth() {
     },
 
     user: {
-      // more properties to add to default better-auth user payload
       additionalFields: {
         role: {
           type: "string",
-          required: true,
-          input: true,
+          required: false,
+          input: false,
           returned: true,
+          defaultValue: "CUSTOMER",
+        },
+        isOnboarded: {
+          type: "boolean",
+          required: false,
+          input: false,
+          returned: true,
+          defaultValue: false,
         },
       },
     },

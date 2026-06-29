@@ -1,7 +1,10 @@
 import { ServerApiError } from "@/lib";
 import prisma from "@movie-ticket-booking/db";
 import type { BatchPayload } from "../../../../packages/db/prisma/generated/internal/prismaNamespace";
-import { SEAT_STATUS, type TheatreMovieSeat } from "@movie-ticket-booking/shared/types";
+import {
+  SEAT_STATUS,
+  type TheatreMovieSeat,
+} from "@movie-ticket-booking/shared/types";
 import { SEAT_RESERVATION_DURATION } from "@movie-ticket-booking/shared/constants";
 
 type Seat = {
@@ -29,7 +32,10 @@ export async function createSeatsBulk(seats: Seat[], theatreId: string) {
   return createdSeats;
 }
 
-export async function deleteSeatsBulk(seats: Seat[], theatreId: string): Promise<BatchPayload> {
+export async function deleteSeatsBulk(
+  seats: Seat[],
+  theatreId: string,
+): Promise<BatchPayload> {
   let deletedSeats = null;
   try {
     const rows: string[] = [];
@@ -56,52 +62,55 @@ export async function deleteSeatsBulk(seats: Seat[], theatreId: string): Promise
   return deletedSeats;
 }
 
-export async function reserveTheatreMovieSeat(customerId: string, theatreMovieSeatId: string) {
+export async function reserveTheatreMovieSeat(
+  customerId: string,
+  theatreMovieSeatId: string,
+): Promise<boolean> {
   try {
-    const result = await prisma.$transaction(
-      async (tx) => {
-        const seat = await tx.theatreMovieSeat.findUnique({
-          where: {
-            id: theatreMovieSeatId,
-          },
-        });
-        if (!seat || seat.status === SEAT_STATUS.SOLD) {
-          return false;
-        }
+    const result = await prisma.$transaction(async (tx) => {
+      const seat = await tx.theatreMovieSeat.findUnique({
+        where: {
+          id: theatreMovieSeatId,
+        },
+      });
+      if (!seat || seat.status === SEAT_STATUS.SOLD) {
+        return false;
+      }
 
-        await Promise.all([
-          // update theatre movie seat status
-          tx.theatreMovieSeat.update({
-            where: {
-              id: theatreMovieSeatId,
-            },
-            data: {
-              status: SEAT_STATUS.SOLD, // unavailable
-            },
-          }),
-          // create a new reservation for seat
-          tx.theatreMovieSeatReservation.create({
-            data: {
-              customerId: customerId,
-              theatreMovieSeatId: theatreMovieSeatId,
-              duration: SEAT_RESERVATION_DURATION,
-              reservedAt: new Date(),
-            },
-          }),
-        ]);
-        return true;
-      },
-      {
-        isolationLevel: "Serializable",
-      },
-    );
+      const updatedResult = await tx.theatreMovieSeat.update({
+        where: {
+          id: theatreMovieSeatId,
+        },
+        data: {
+          status: SEAT_STATUS.SOLD,
+        },
+      });
+      // optimistic approach
+      if (!updatedResult) {
+        return false;
+      }
+
+      // create a new reservation for seat
+      await tx.theatreMovieSeatReservation.create({
+        data: {
+          customerId: customerId,
+          theatreMovieSeatId: theatreMovieSeatId,
+          duration: SEAT_RESERVATION_DURATION,
+          reservedAt: new Date(),
+        },
+      });
+      return true;
+    });
     return result;
   } catch (err) {
     throw new ServerApiError("DB Error: Failed to reserve seat for user", 500);
   }
 }
 
-export async function verifySeatReservationForUser(customerId: string, theatreMovieSeatId: string) {
+export async function verifySeatReservationForUser(
+  customerId: string,
+  theatreMovieSeatId: string,
+) {
   const reservedSeats = await prisma.theatreMovieSeatReservation.findMany({
     where: {
       theatreMovieSeatId: theatreMovieSeatId,
@@ -114,7 +123,9 @@ export async function verifySeatReservationForUser(customerId: string, theatreMo
   if (!reservedSeats) return false;
   const firstReservation = reservedSeats[0];
   const reservedTime = new Date(firstReservation!.reservedAt);
-  const expirationTimeStamp = new Date(reservedTime.getTime() + firstReservation!.duration);
+  const expirationTimeStamp = new Date(
+    reservedTime.getTime() + firstReservation!.duration,
+  );
   const currTimeStamp = new Date();
   if (expirationTimeStamp < currTimeStamp) {
     return false;

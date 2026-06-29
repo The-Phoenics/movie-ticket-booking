@@ -2,123 +2,253 @@
 
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
-import { Button } from "@movie-ticket-booking/ui/components/button";
-import { Input } from "@movie-ticket-booking/ui/components/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@movie-ticket-booking/ui/components/card";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Eye, EyeOff, Film, Loader2 } from "lucide-react";
+import Link from "next/link";
 import type { Route } from "next";
 
+type Mode = "signin" | "signup";
+
 export default function AuthPage() {
-  const { data: session, isPending, error } = authClient.useSession();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const router = useRouter();
+  const { data: session, isPending: sessionPending } = authClient.useSession();
+
+  const [mode, setMode] = useState<Mode>("signin");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    if (isSignUp) {
-      await authClient.signUp.email({
-        email,
-        password,
-        name,
-        callbackURL: "/movies",
-      });
+  // Already authenticated — use isOnboarded from session to decide where to go
+  if (!sessionPending && session) {
+    if (session.user.isOnboarded) {
+      router.replace("/movies" as Route);
     } else {
-      await authClient.signIn.email({
-        email,
-        password,
-        callbackURL: "/movies",
-      });
+      router.replace("/onboarding" as Route);
     }
-    setLoading(false);
+    return null;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    if (mode === "signup") {
+      await authClient.signUp.email(
+        { email, password, name },
+        {
+          onSuccess: () => {
+            toast.success("Account created! Let's set up your profile.");
+            router.push("/onboarding" as Route);
+          },
+          onError: (error: { error: { message?: string } }) => {
+            toast.error(error.error.message || "Sign up failed. Please try again.");
+            setIsSubmitting(false);
+          },
+        },
+      );
+    } else {
+      await authClient.signIn.email(
+        { email, password },
+        {
+          onSuccess: (response: { data: { user: { isOnboarded?: boolean } } | null }) => {
+            const isOnboarded = response.data?.user?.isOnboarded;
+            if (isOnboarded) {
+              toast.success("Welcome back!");
+              router.push("/movies" as Route);
+            } else {
+              router.push("/onboarding" as Route);
+            }
+          },
+          onError: (error: { error: { message?: string } }) => {
+            toast.error(error.error.message || "Sign in failed. Check your credentials.");
+            setIsSubmitting(false);
+          },
+        },
+      );
+    }
   };
 
-  const handleGoogleSignIn = async () => {
-    await authClient.signIn.social({
-      provider: "google",
-      callbackURL: "/movies",
-    });
-  };
-
-  if (session) {
-    redirect("/movies" as Route)
+  if (sessionPending) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-zinc-500" />
+      </div>
+    );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold">
-            {isSignUp ? "Create an account" : "Welcome back"}
-          </CardTitle>
-          <CardDescription>
-            {isSignUp
-              ? "Enter your details to register"
-              : "Enter your email to sign in to your account"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <form onSubmit={handleAuth} className="space-y-3">
-            {isSignUp && (
-              <Input
-                type="text"
-                placeholder="Full Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            )}
-            <Input
-              type="email"
-              placeholder="name@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <Input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <Button className="w-full" type="submit" disabled={loading}>
-              {loading ? "Processing..." : isSignUp ? "Sign Up" : "Sign In"}
-            </Button>
-          </form>
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center px-4 py-12">
+      {/* Background glow */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full bg-red-600/10 blur-3xl" />
+      </div>
 
-          {/* <div className="relative flex py-2 items-center">
-            <div className="flex-grow border-t border-muted" />
-            <span className="flex-shrink mx-4 text-xs text-muted-foreground uppercase">
-              Or continue with
-            </span>
-            <div className="flex-grow border-t border-muted" />
-          </div> */}
+      {/* Logo */}
+      <Link href="/" className="mb-8 flex items-center gap-2 group">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-600/15 text-red-400 group-hover:bg-red-600/25 transition-colors">
+          <Film className="h-5 w-5" />
+        </span>
+        <span className="font-fraunces text-xl font-semibold tracking-tight">
+          Reel<span className="text-red-500">.</span>
+        </span>
+      </Link>
 
-          {/* <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>
-            Continue with Google
-          </Button> */}
+      {/* Card */}
+      <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 shadow-2xl overflow-hidden">
+        {/* Top accent line */}
+        <div className="h-1 bg-gradient-to-r from-red-700 via-red-500 to-orange-400" />
 
-          <div className="text-center text-sm hover:cursor-pointer">
-            <button
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-primary underline underline-offset-4 hover:opacity-80"
-            >
-              {isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up"}
-            </button>
+        <div className="px-8 py-8">
+          {/* Tab switcher */}
+          <div className="flex rounded-xl bg-zinc-800/60 p-1 mb-8">
+            {(["signin", "signup"] as Mode[]).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => {
+                  setMode(m);
+                  setName("");
+                  setEmail("");
+                  setPassword("");
+                }}
+                className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all ${
+                  mode === m
+                    ? "bg-zinc-700 text-zinc-100 shadow"
+                    : "text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                {m === "signin" ? "Sign In" : "Sign Up"}
+              </button>
+            ))}
           </div>
-        </CardContent>
-      </Card>
+
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-zinc-100">
+              {mode === "signin" ? "Welcome back" : "Create your account"}
+            </h1>
+            <p className="mt-1 text-sm text-zinc-500">
+              {mode === "signin"
+                ? "Sign in to book your seats and manage your tickets."
+                : "Join Reel to start booking movie tickets in seconds."}
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Name — sign up only */}
+            {mode === "signup" && (
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="name"
+                  className="text-xs font-medium uppercase tracking-wide text-zinc-500"
+                >
+                  Full Name
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  autoComplete="name"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Ada Lovelace"
+                  className="w-full rounded-xl border border-zinc-700 bg-zinc-800/60 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 outline-none transition focus:border-red-500/60 focus:ring-2 focus:ring-red-500/15"
+                />
+              </div>
+            )}
+
+            {/* Email */}
+            <div className="space-y-1.5">
+              <label
+                htmlFor="email"
+                className="text-xs font-medium uppercase tracking-wide text-zinc-500"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="ada@example.com"
+                className="w-full rounded-xl border border-zinc-700 bg-zinc-800/60 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 outline-none transition focus:border-red-500/60 focus:ring-2 focus:ring-red-500/15"
+              />
+            </div>
+
+            {/* Password */}
+            <div className="space-y-1.5">
+              <label
+                htmlFor="password"
+                className="text-xs font-medium uppercase tracking-wide text-zinc-500"
+              >
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                  required
+                  minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Min. 8 characters"
+                  className="w-full rounded-xl border border-zinc-700 bg-zinc-800/60 px-4 py-3 pr-11 text-sm text-zinc-100 placeholder-zinc-600 outline-none transition focus:border-red-500/60 focus:ring-2 focus:ring-red-500/15"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full mt-2 flex items-center justify-center gap-2 rounded-xl bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-900/40 transition-all hover:bg-red-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400 disabled:shadow-none"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {mode === "signin" ? "Signing in…" : "Creating account…"}
+                </>
+              ) : mode === "signin" ? (
+                "Sign In"
+              ) : (
+                "Create Account"
+              )}
+            </button>
+          </form>
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-zinc-800 px-8 py-4 text-center">
+          <p className="text-xs text-zinc-600">
+            {mode === "signin" ? "Don't have an account? " : "Already have an account? "}
+            <button
+              type="button"
+              onClick={() => {
+                setMode(mode === "signin" ? "signup" : "signin");
+                setName("");
+                setEmail("");
+                setPassword("");
+              }}
+              className="text-zinc-400 underline underline-offset-2 hover:text-zinc-200 transition-colors"
+            >
+              {mode === "signin" ? "Sign up" : "Sign in"}
+            </button>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

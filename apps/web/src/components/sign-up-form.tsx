@@ -29,8 +29,8 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
         },
         {
           onSuccess: () => {
-            router.push("/");
-            toast.success("Sign up successful");
+            toast.success("Account created! Let's set up your profile.");
+            router.push("/onboarding");
           },
           onError: (error) => {
             toast.error(error.error.message || error.error.statusText);
