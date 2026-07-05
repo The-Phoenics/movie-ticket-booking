@@ -1,5 +1,5 @@
 import { apiJsonRseponse } from "@/utils";
-import prisma from "@movie-ticket-booking/db"; 
+import prisma from "@movie-ticket-booking/db";
 import express, { type Request, type Response, type Router } from "express";
 
 const profileRouter: Router = express.Router();

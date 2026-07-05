@@ -10,16 +10,17 @@ datasource db {
 }
 
 model User {
-  id            String      @id @default(cuid())
+  id            String    @id @default(cuid())
   email         String
   name          String?
-  emailVerified Boolean     @default(false)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  isOnboarded   Boolean     @default(false)
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  isOnboarded   Boolean   @default(false)
+  isAdmin       Boolean   @default(false)
   sessions      Session[]
   accounts      Account[]
-  role          ProfileType @default(CUSTOMER)
+  role          Role      @default(CUSTOMER)
   customer      Customer?
   theatre       Theatre?
 
@@ -75,9 +76,30 @@ model Verification {
   @@map("verification")
 }
 
-enum ProfileType {
+model RolePermissions {
+  id          String       @id
+  role        Role         @unique
+  permissions Permission[]
+}
+
+enum Role {
+  ADMIN
   CUSTOMER
   BUSINESS
+  THEATRE_MANAGER
+}
+
+enum Permission {
+  THEATRE_READ        @map("theatre:read")
+  THEATRE_CREATE      @map("theatre:create")
+  THEATRE_DELETE      @map("theatre:delete")
+  THEATRE_WRITE       @map("theatre:write")
+  THEATRE_ADDMOVIE    @map("theatre:addmovie")
+  THEATRE_UPDATEMOVIE @map("theatre:updatemovie")
+
+  SCREEN_CREATE @map("screen:read")
+  SCREEN_WRITE  @map("screen:write")
+  SCREEN_DELETE @map("screen:delete")
 }
 
 model Customer {
