@@ -93,25 +93,25 @@ model Customer {
 }
 
 model Theatre {
-  id           String @id @default(cuid())
-  userId       String @unique
-  title        String
-  address      String
-  city         String
-  country      String
-  theateMovies Show[]
-  seat         Seat[]
-  user         User   @relation(fields: [userId], references: [id])
+  id            String @id @default(cuid())
+  userId        String @unique
+  title         String
+  address       String
+  city          String
+  country       String
+  theatreMovies Show[]
+  seat          Seat[]
+  user          User   @relation(fields: [userId], references: [id])
 }
 
 model Movie {
-  id           String      @id @default(cuid())
-  title        String
-  description  String
-  rating       Int
-  crew         Json        @default("{}")
-  tags         MOVIE_TAG[]
-  theateMovies Show[]
+  id            String      @id @default(cuid())
+  title         String
+  description   String
+  rating        Int
+  crew          Json        @default("{}")
+  tags          MOVIE_TAG[]
+  theatreMovies Show[]
 }
 
 model Show {
@@ -133,7 +133,7 @@ model Seat {
   row               String
   col               Int
   theatre           Theatre    @relation(fields: [theatreId], references: [id])
-  threatreMovieSeat ShowSeat[]
+  theatreMovieSeats ShowSeat[]
 
   @@unique([theatreId, row, col])
 }
