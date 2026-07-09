@@ -3,6 +3,7 @@ import prisma from "@movie-ticket-booking/db";
 import { auth } from "@movie-ticket-booking/auth";
 import { fromNodeHeaders } from "better-auth/node";
 import express, { type Request, type Response, type Router } from "express";
+import { ProfileType } from "@movie-ticket-booking/shared/types";
 
 const onboardingRouter: Router = express.Router();
 
@@ -16,12 +17,11 @@ onboardingRouter.post("/", async (req: Request, res: Response) => {
     return res.status(401).json(apiJsonRseponse(false, null, "Unauthorized user session"));
   }
 
-  const { role } = req.body as { role?: string };
-
-  if (!role || (role !== "CUSTOMER" && role !== "BUSINESS")) {
+  const { role } = req.body;
+  if (!role || (role !== ProfileType.OWNER && role !== ProfileType.CUSTOMER)) {
     return res
       .status(400)
-      .json(apiJsonRseponse(false, null, "Invalid role. Must be CUSTOMER or BUSINESS"));
+      .json(apiJsonRseponse(false, null, "Invalid role. Must be CUSTOMER or OWNER"));
   }
 
   try {
@@ -42,14 +42,14 @@ onboardingRouter.post("/", async (req: Request, res: Response) => {
         }),
         prisma.user.update({
           where: { id: user.id },
-          data: { role: "CUSTOMER", isOnboarded: true },
+          data: { role: ProfileType.CUSTOMER, isOnboarded: true },
         }),
       ]);
 
       return res.status(200).json(apiJsonRseponse(true, { customer }, "Onboarding complete"));
     }
 
-    if (role === "OWNER") {
+    if (role === ProfileType.OWNER) {
       const { title, address, city, country } = req.body as {
         title?: string;
         address?: string;
@@ -83,7 +83,7 @@ onboardingRouter.post("/", async (req: Request, res: Response) => {
         }),
         prisma.user.update({
           where: { id: user.id },
-          data: { role: "BUSINESS", isOnboarded: true },
+          data: { role: ProfileType.OWNER, isOnboarded: true },
         }),
       ]);
 
