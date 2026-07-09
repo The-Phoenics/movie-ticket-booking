@@ -9,7 +9,7 @@ type SeatStatus = "AVAILABLE" | "SOLD";
 
 interface TheatreMovieSeatDto {
   id: string;
-  theatreMovieId: string;
+  showId: string;
   seatId: string;
   status: SeatStatus;
   price: number;
@@ -63,14 +63,14 @@ export default function BuyTheatreMovieSeat({
   theatreData,
   showTime,
 }: BuyTheatreMovieSeatProps) {
-  const { movieId, theatreMovieId } = useParams<{
+  const { movieId, showId } = useParams<{
     movieId: string;
-    theatreMovieId: string;
+    showId: string;
   }>();
   const router = useRouter();
 
   const buySeatFn = async () => {
-    const fetchUrl = `${env.NEXT_PUBLIC_SERVER_URL}/movies/${movieId}/${theatreMovieId}/book/${selectedSeat.id}`;
+    const fetchUrl = `${env.NEXT_PUBLIC_SERVER_URL}/movies/${movieId}/${showId}/book/${selectedSeat.id}`;
     const res = await fetch(fetchUrl, {
       method: "POST",
       headers: {

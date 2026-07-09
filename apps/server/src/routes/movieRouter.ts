@@ -29,23 +29,23 @@ const GetMovieValidationSchema: ValidationSchemaType = {
 const GetTheatreMovieValidationSchema: ValidationSchemaType = {
   params: z.object({
     movieId: z.string().min(1),
-    theatreMovieId: z.string().min(1),
+    showId: z.string().min(1),
   }),
 };
 
 const SeatReserveRequestSchema: ValidationSchemaType = {
   params: z.object({
     movieId: z.string(),
-    theatreMovieId: z.string(),
-    theatreMovieSeatId: z.string(),
+    showId: z.string(),
+    showSeatId: z.string(),
   }),
 };
 
 const SeatBookRequestSchema: ValidationSchemaType = {
   params: z.object({
     movieId: z.string(),
-    theatreMovieId: z.string(),
-    theatreMovieSeatId: z.string(),
+    showId: z.string(),
+    showSeatId: z.string(),
   }),
   body: z.object({
     currency: z.string(),
@@ -70,20 +70,20 @@ moviesRouter.get("/:movieId", validateRequest(GetMovieValidationSchema), getMovi
 
 // get theatre movie seats (seats reservation page)
 moviesRouter.get(
-  "/:movieId/:theatreMovieId",
+  "/:movieId/:showId",
   validateRequest(GetTheatreMovieValidationSchema),
   getTheatreMovieSeatsController,
 );
 
 moviesRouter.post(
-  "/:movieId/:theatreMovieId/reserve/:theatreMovieSeatId",
+  "/:movieId/:showId/reserve/:showSeatId",
   authRequired,
   validateRequest(SeatReserveRequestSchema),
   reserveMovieSeatController,
 );
 
 moviesRouter.post(
-  "/:movieId/:theatreMovieId/book/:theatreMovieSeatId",
+  "/:movieId/:showId/book/:showSeatId",
   authRequired,
   validateRequest(SeatBookRequestSchema),
   bookMovieSeatController,

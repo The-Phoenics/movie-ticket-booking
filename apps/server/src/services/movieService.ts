@@ -1,6 +1,6 @@
 import { ServerApiError } from "@/lib";
 import prisma from "@movie-ticket-booking/db";
-import type { Theatre, TheatreMovie } from "@movie-ticket-booking/shared/types";
+import type { Theatre, Show, ShowSeatReservation, ShowSeat } from "@movie-ticket-booking/shared/types";
 import type { MovieCreateInput } from "../../../../packages/db/prisma/generated/internal/prismaNamespace";
 import { format } from "date-fns";
 import { updateTheatreMovieSeatExpiredReservation } from "./seatService";
@@ -40,7 +40,7 @@ export async function getMovieDetailsAndTheatres(movieId: string) {
           id: movieId,
         },
       }),
-      prisma.theatreMovie.findMany({
+      prisma.show.findMany({
         where: {
           movieId: movieId,
         },
@@ -50,7 +50,7 @@ export async function getMovieDetailsAndTheatres(movieId: string) {
       }),
     ]);
 
-    const theatreMovies = theatreMovie.sort((th1: TheatreMovie, th2: TheatreMovie) => {
+    const theatreMovies = theatreMovie.sort((th1: Show, th2: Show) => {
       if (th1.startTime < th2.startTime) return 1;
       return -1;
     });
@@ -72,11 +72,11 @@ export async function getMovieDetailsAndTheatres(movieId: string) {
           if (!theatre) {
             theatreWithTimings[thId] = {
               theatreData: tm.theatre,
-              dates: [{ start: tm.startTime, end: tm.endTime, theatreMovieId: tm.id }],
+              dates: [{ start: tm.startTime, end: tm.endTime, showId: tm.id }],
             };
           } else {
             const dates = theatre.dates;
-            dates.push({ start: tm.startTime, end: tm.endTime, theatreMovieId: tm.id });
+            dates.push({ start: tm.startTime, end: tm.endTime, showId: tm.id });
             theatreWithTimings[thId].dates = dates;
           }
         }
@@ -93,10 +93,10 @@ export async function getMovieDetailsAndTheatres(movieId: string) {
   }
 }
 
-export async function getTheatreMovies(theatreId: string) {
+export async function getShows(theatreId: string) {
   let movies = null;
   try {
-    movies = await prisma.theatreMovie.findMany({
+    movies = await prisma.show.findMany({
       where: {
         theatreId: theatreId,
       },
@@ -108,11 +108,11 @@ export async function getTheatreMovies(theatreId: string) {
 }
 
 // get movies details and all the theatres list where movies is available
-export async function getTheatreMovieSeats(theatreMovieId: string) {
+export async function getShowSeats(showId: string) {
   try {
-    const seats = await prisma.theatreMovieSeat.findMany({
+    const seats = await prisma.showSeat.findMany({
       where: {
-        theatreMovieId: theatreMovieId,
+        showId: showId,
       },
       include: {
         seat: {
@@ -122,7 +122,7 @@ export async function getTheatreMovieSeats(theatreMovieId: string) {
             col: true,
           },
         },
-        reservations: {
+        seatReservations: {
           select: {
             reservedAt: true,
             duration: true,
@@ -133,9 +133,9 @@ export async function getTheatreMovieSeats(theatreMovieId: string) {
     // TODO: Also return the user with seat for whom the seat is reserved, so frontend won't show the seat as reserved the user for whom its already reserved
 
     // filter all the seats with expired reservation
-    const seatsWithExpiredReservation = seats.filter((s) => {
-      let recentReservation = s.reservations[0];
-      s.reservations.forEach((reservation) => {
+    const seatsWithExpiredReservation = seats.filter((s: ShowSeat) => {
+      let recentReservation = s.seatReservations[0];
+      s.seatReservations.forEach((reservation: ShowSeatReservation) => {
         if (!recentReservation || reservation.reservedAt > recentReservation.reservedAt) {
           recentReservation = reservation;
         }

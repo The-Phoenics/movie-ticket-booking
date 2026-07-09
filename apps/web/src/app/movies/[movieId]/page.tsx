@@ -16,7 +16,7 @@ interface Theatre {
 interface ShowSlot {
   start: string;
   end: string;
-  theatreMovieId: string;
+  showId: string;
 }
 
 interface TheatreWithTimings {
@@ -207,7 +207,7 @@ export default function MoviePage() {
                                     new Date(a.start).getTime() - new Date(b.start).getTime(),
                                 )
                                 .map((slot, idx) => {
-                                  const hasId = slot.theatreMovieId;
+                                  const hasId = slot.showId;
                                   return (
                                     <button
                                       key={`${theatreId}-${idx}`}
@@ -215,7 +215,7 @@ export default function MoviePage() {
                                       onClick={() => {
                                         if (!hasId) return;
                                         router.push(
-                                          `/movies/${params.movieId}/${slot.theatreMovieId}`,
+                                          `/movies/${params.movieId}/${slot.showId}`,
                                         );
                                       }}
                                       title={

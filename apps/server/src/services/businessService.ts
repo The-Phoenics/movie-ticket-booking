@@ -3,8 +3,8 @@ import prisma from "@movie-ticket-booking/db";
 import {
   SEAT_STATUS,
   type Theatre,
-  type TheatreMovie,
-  type TheatreMovieSeat,
+  type Show,
+  type ShowSeat,
 } from "@movie-ticket-booking/shared/types";
 
 export async function createTheatre(theatreData: Omit<Theatre, "id">) {
@@ -51,8 +51,8 @@ export async function addMovieToTheatre(
       },
     });
 
-    const theatreMovie: TheatreMovie = await prisma.$transaction(async (tx) => {
-      const createdTheatreMovie = await tx.theatreMovie.create({
+    const theatreMovie: Show = await prisma.$transaction(async (tx) => {
+      const createdTheatreMovie = await tx.show.create({
         data: {
           theatreId: theatreId,
           movieId: movieId,
@@ -62,8 +62,8 @@ export async function addMovieToTheatre(
       });
 
       const theatreMovieSeatsData = seats.map((seat) => {
-        const data: Omit<TheatreMovieSeat, "id"> = {
-          theatreMovieId: createdTheatreMovie.id,
+        const data: Omit<ShowSeat, "id"> = {
+          showId: createdTheatreMovie.id,
           seatId: seat.id,
           status: SEAT_STATUS.AVAILABLE,
           price: price,
@@ -73,7 +73,7 @@ export async function addMovieToTheatre(
 
       // insert theatre movie seats rows using theatre's seats
       // mark all of them available initially
-      await tx.theatreMovieSeat.createManyAndReturn({
+      await tx.showSeat.createManyAndReturn({
         data: theatreMovieSeatsData,
         skipDuplicates: true,
       });

@@ -1,6 +1,6 @@
 import { ServerApiError } from "@/lib";
 import { createTheatre, theatreNumOfSeats, addMovieToTheatre } from "@/services/businessService";
-import { getTheatreMovies } from "@/services/movieService";
+import { getShows } from "@/services/movieService";
 import { apiJsonRseponse, isValidDateInstance } from "@/utils";
 import prisma from "@movie-ticket-booking/db";
 import type { NextFunction, Request, Response } from "express";
@@ -81,7 +81,7 @@ export async function getTheatreMoviesController(req: Request, res: Response, ne
   if (!theatre) res.status(404).json(apiJsonRseponse(false, null, "Invalid theatre id"));
 
   try {
-    const movies = await getTheatreMovies(theatreId);
+    const movies = await getShows(theatreId);
     res.status(200).json(apiJsonRseponse(true, movies, "Successfully fetched movies"));
   } catch (err) {
     next(err);

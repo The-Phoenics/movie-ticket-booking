@@ -11,7 +11,7 @@ type SeatStatus = "AVAILABLE" | "SOLD";
 
 interface TheatreMovieSeatDto {
   id: string;
-  theatreMovieId: string;
+  showId: string;
   seatId: string;
   status: SeatStatus;
   price: number;
@@ -43,13 +43,13 @@ interface TheatreMovieSeatsData {
   movieTitle?: string;
 }
 
-async function fetchTheatreMovieSeats(
+async function fetchShowSeats(
   movieId: string,
-  theatreMovieId: string,
+  showId: string,
 ): Promise<TheatreMovieSeatsData> {
   // Fetch seats
   const seatsRes = await fetch(
-    `${env.NEXT_PUBLIC_SERVER_URL}/movies/${movieId}/${theatreMovieId}`,
+    `${env.NEXT_PUBLIC_SERVER_URL}/movies/${movieId}/${showId}`,
     { cache: "no-store" },
   );
 
@@ -78,14 +78,14 @@ async function fetchTheatreMovieSeats(
     const data = movieJson?.data;
     movieTitle = data?.movie?.title;
 
-    // Walk the datesWithTheatreTimings map to find the matching theatreMovieId slot
+    // Walk the datesWithTheatreTimings map to find the matching showId slot
     const dateMap: Record<
       string,
       Record<
         string,
         {
           theatreData: TheatreData;
-          dates: { start: string; end: string; theatreMovieId: string }[];
+          dates: { start: string; end: string; showId: string }[];
         }
       >
     > = data?.datesWithTheatreTimings ?? {};
@@ -93,7 +93,7 @@ async function fetchTheatreMovieSeats(
     outer: for (const dateKey of Object.keys(dateMap)) {
       for (const theatreId of Object.keys(dateMap[dateKey])) {
         const entry = dateMap[dateKey][theatreId];
-        const slot = entry.dates.find((d) => d.theatreMovieId === theatreMovieId);
+        const slot = entry.dates.find((d) => d.showId === showId);
         if (slot) {
           theatreData = entry.theatreData;
           showTime = { start: slot.start, end: slot.end };
@@ -111,11 +111,11 @@ async function fetchTheatreMovieSeats(
   };
 }
 
-function useTheatreMovieSeats(movieId: string, theatreMovieId: string) {
+function useShowSeats(movieId: string, showId: string) {
   return useQuery({
-    queryKey: ["theatre-movie-seats", theatreMovieId],
-    queryFn: () => fetchTheatreMovieSeats(movieId, theatreMovieId),
-    enabled: !!theatreMovieId,
+    queryKey: ["theatre-movie-seats", showId],
+    queryFn: () => fetchShowSeats(movieId, showId),
+    enabled: !!showId,
     staleTime: 0, // seat availability changes fast, don't cache stale state
   });
 }
@@ -153,19 +153,19 @@ function ProceedBar({ isProceeding, selectedSeat, onProceed }: ProceedBarProps) 
   );
 }
 
-export default function TheatreMoviePage() {
-  const { movieId, theatreMovieId } = useParams<{
+export default function ShowPage() {
+  const { movieId, showId } = useParams<{
     movieId: string;
-    theatreMovieId: string;
+    showId: string;
   }>();
 
-  const { data, isLoading, isError } = useTheatreMovieSeats(movieId, theatreMovieId);
+  const { data, isLoading, isError } = useShowSeats(movieId, showId);
   const [selectedSeat, setSelectedSeat] = useState<TheatreMovieSeatDto | null>(null);
   const [isProceeding, setIsProceeding] = useState<boolean>(false);
   const [isBuying, setIsBuying] = useState<boolean>(false);
 
   const reserveSeatFn = async () => {
-    const fetchUrl = `${env.NEXT_PUBLIC_SERVER_URL}/movies/${movieId}/${theatreMovieId}/reserve/${selectedSeat?.id}`;
+    const fetchUrl = `${env.NEXT_PUBLIC_SERVER_URL}/movies/${movieId}/${showId}/reserve/${selectedSeat?.id}`;
     const res = await fetch(fetchUrl, {
       method: "POST",
       credentials: "include",
@@ -204,6 +204,7 @@ export default function TheatreMoviePage() {
   }
 
   if (isError || !data) {
+    console.log("no seats: ", data, isError)
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center gap-2 text-center">
         <p className="text-sm font-medium text-zinc-300">Couldn't load seats for this show.</p>

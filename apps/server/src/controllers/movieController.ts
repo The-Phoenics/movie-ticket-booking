@@ -3,7 +3,7 @@ import {
   createMovie,
   getMovieDetailsAndTheatres,
   getMovies,
-  getTheatreMovieSeats,
+  getShowSeats,
 } from "@/services/movieService";
 import { reserveTheatreMovieSeat, verifySeatReservationForUser } from "@/services/seatService";
 import { apiJsonRseponse, convertIntoSmallestCurrencyUnit, minutesToSeconds } from "@/utils";
@@ -65,13 +65,13 @@ export async function getTheatreMovieSeatsController(
   next: NextFunction,
 ) {
   try {
-    const theatreMovieId = req.params.theatreMovieId as string;
-    if (!theatreMovieId) throw new ServerApiError("Invalid theatre movie id provided", 401);
+    const showId = req.params.showId as string;
+    if (!showId) throw new ServerApiError("Invalid theatre movie id provided", 401);
 
-    const theatreMovie = await prisma.theatreMovie.findUnique({ where: { id: theatreMovieId } })
+    const theatreMovie = await prisma.show.findUnique({ where: { id: showId } })
     if (!theatreMovie) throw new ServerApiError("Invalid theatre movie id provided", 401);
 
-    const seats = await getTheatreMovieSeats(theatreMovieId);
+    const seats = await getShowSeats(showId);
     return res
       .status(200)
       .json(apiJsonRseponse(true, seats, "Successfully fetched theatre movie seats"));
@@ -82,14 +82,14 @@ export async function getTheatreMovieSeatsController(
 
 export async function reserveMovieSeatController(req: Request, res: Response, next: NextFunction) {
   try {
-    const theatreMovieId = req.params.theatreMovieId as string;
-    const theatreMovieSeatId = req.params.theatreMovieSeatId as string;
+    const showId = req.params.showId as string;
+    const showSeatId = req.params.showSeatId as string;
     const user = req.user;
     if (!user || !user.id || user.role !== ProfileType.CUSTOMER) {
       throw new ServerApiError("Invalid session or invalid request by user", 401);
     }
-    if (!theatreMovieId) throw new ServerApiError("Invalid theatre movie", 401);
-    if (!theatreMovieSeatId) throw new ServerApiError("Invalid theatre movie seat", 401);
+    if (!showId) throw new ServerApiError("Invalid theatre movie", 401);
+    if (!showSeatId) throw new ServerApiError("Invalid theatre movie seat", 401);
 
     const customer = await prisma.customer.findUnique({ where: { userId: user.id } });
     if (!customer) {
@@ -97,7 +97,7 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
     }
 
     // check redis for reservation
-    const key = `seat:${theatreMovieSeatId}:`;
+    const key = `seat:${showSeatId}:`;
     const reservedForUserId: string | null = await redisClient.get(key);
 
     if (reservedForUserId) {
@@ -121,7 +121,7 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
     }
 
     // call reserve seat service
-    const reservationSuccess = reserveTheatreMovieSeat(customer.id, theatreMovieSeatId);
+    const reservationSuccess = reserveTheatreMovieSeat(customer.id, showSeatId);
 
     // if seat couldn't be resesrved - gets reserved for another user -> return seat not available
     if (!reservationSuccess) {
@@ -157,10 +157,10 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
 
 export async function bookMovieSeatController(req: Request, res: Response, next: NextFunction) {
   try {
-    const theatreMovieId = req.params.theatreMovieId as string;
-    const theatreMovieSeatId = req.params.theatreMovieSeatId as string;
-    if (!theatreMovieId) throw new ServerApiError("Invalid theatreMovieId", 401);
-    if (!theatreMovieSeatId) throw new ServerApiError("Invalid theatreMovieSeatId", 401);
+    const showId = req.params.showId as string;
+    const showSeatId = req.params.showSeatId as string;
+    if (!showId) throw new ServerApiError("Invalid showId", 401);
+    if (!showSeatId) throw new ServerApiError("Invalid showSeatId", 401);
 
     const amount = Number.parseInt(req.body.amount);
     const currency = req.body.currency as CURRENCY;
@@ -179,7 +179,7 @@ export async function bookMovieSeatController(req: Request, res: Response, next:
     if (!customer) {
       throw new ServerApiError("Unauthorized user making request to buy ticket", 402);
     }
-    const verified = verifySeatReservationForUser(customer.id, theatreMovieSeatId);
+    const verified = verifySeatReservationForUser(customer.id, showSeatId);
     if (!verified) {
       throw new ServerApiError("Seat is reserved for the user trying to buy the seat", 401);
     }
@@ -189,7 +189,7 @@ export async function bookMovieSeatController(req: Request, res: Response, next:
       data: {
         status: ORDER_STATUS.PENDING,
         customerId: customer.id,
-        theatreMovieSeatId: theatreMovieSeatId,
+        showSeatId: showSeatId,
         payment: {
           create: {
             amount: amount,
@@ -215,7 +215,7 @@ export async function bookMovieSeatController(req: Request, res: Response, next:
           metadata: {
             customerId: result.customerId,
             orderId: result.id,
-            theatreMovieSeatId: theatreMovieSeatId,
+            showSeatId: showSeatId,
           },
         },
         {

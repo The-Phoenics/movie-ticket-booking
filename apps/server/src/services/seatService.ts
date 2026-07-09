@@ -3,7 +3,7 @@ import prisma from "@movie-ticket-booking/db";
 import type { BatchPayload } from "../../../../packages/db/prisma/generated/internal/prismaNamespace";
 import {
   SEAT_STATUS,
-  type TheatreMovieSeat,
+  type ShowSeat,
 } from "@movie-ticket-booking/shared/types";
 import { SEAT_RESERVATION_DURATION } from "@movie-ticket-booking/shared/constants";
 
@@ -64,22 +64,22 @@ export async function deleteSeatsBulk(
 
 export async function reserveTheatreMovieSeat(
   customerId: string,
-  theatreMovieSeatId: string,
+  showSeatId: string,
 ): Promise<boolean> {
   try {
     const result = await prisma.$transaction(async (tx) => {
-      const seat = await tx.theatreMovieSeat.findUnique({
+      const seat = await tx.showSeat.findUnique({
         where: {
-          id: theatreMovieSeatId,
+          id: showSeatId,
         },
       });
       if (!seat || seat.status === SEAT_STATUS.SOLD) {
         return false;
       }
 
-      const updatedResult = await tx.theatreMovieSeat.update({
+      const updatedResult = await tx.showSeat.update({
         where: {
-          id: theatreMovieSeatId,
+          id: showSeatId,
         },
         data: {
           status: SEAT_STATUS.SOLD,
@@ -91,10 +91,10 @@ export async function reserveTheatreMovieSeat(
       }
 
       // create a new reservation for seat
-      await tx.theatreMovieSeatReservation.create({
+      await tx.showSeatReservation.create({
         data: {
           customerId: customerId,
-          theatreMovieSeatId: theatreMovieSeatId,
+          showSeatId: showSeatId,
           duration: SEAT_RESERVATION_DURATION,
           reservedAt: new Date(),
         },
@@ -109,11 +109,11 @@ export async function reserveTheatreMovieSeat(
 
 export async function verifySeatReservationForUser(
   customerId: string,
-  theatreMovieSeatId: string,
+  showSeatId: string,
 ) {
-  const reservedSeats = await prisma.theatreMovieSeatReservation.findMany({
+  const reservedSeats = await prisma.showSeatReservation.findMany({
     where: {
-      theatreMovieSeatId: theatreMovieSeatId,
+      showSeatId: showSeatId,
       customerId: customerId,
     },
     orderBy: {
@@ -134,11 +134,11 @@ export async function verifySeatReservationForUser(
 }
 
 export async function updateTheatreMovieSeatExpiredReservation(
-  theatreMovieSeats: ({ id: string } & Partial<TheatreMovieSeat>)[],
+  theatreMovieSeats: ({ id: string } & Partial<ShowSeat>)[],
 ) {
   try {
     const ids = theatreMovieSeats.map((seat) => seat.id);
-    const result = await prisma.theatreMovieSeat.updateMany({
+    const result = await prisma.showSeat.updateMany({
       where: {
         id: {
           in: ids,

@@ -8,15 +8,16 @@ import { auth } from "@movie-ticket-booking/auth";
 import { createTheatre, addMovieToTheatre } from "./services/businessService";
 import { createSeatsBulk } from "./services/seatService";
 import { createMovie } from "./services/movieService";
+import { ProfileType } from "@movie-ticket-booking/shared/types";
 
 const populate = JSON.parse(fs.readFileSync(path.join(__dirname, "populate.json"), "utf8"));
 
 async function main() {
   console.log("Cleaning database...");
   await prisma.ticket.deleteMany({});
-  await prisma.theatreMovieSeatReservation.deleteMany({});
-  await prisma.theatreMovieSeat.deleteMany({});
-  await prisma.theatreMovie.deleteMany({});
+  await prisma.showSeatReservation.deleteMany({});
+  await prisma.showSeat.deleteMany({});
+  await prisma.show.deleteMany({});
   await prisma.seat.deleteMany({});
   await prisma.movie.deleteMany({});
   await prisma.theatre.deleteMany({});
@@ -39,7 +40,7 @@ async function main() {
         email: user.email,
         password: user.password,
         name: user.name,
-        role: user.role,
+        role: ProfileType.CUSTOMER,
       },
     });
 
@@ -78,7 +79,7 @@ async function main() {
         email: businessUser.email,
         password: businessUser.password,
         name: businessUser.name,
-        role: businessUser.role,
+        role: ProfileType.OWNER,
       },
     });
 
@@ -113,7 +114,7 @@ async function main() {
         email: businessUser.email,
         password: businessUser.password,
         name: businessUser.name,
-        role: businessUser.role,
+        role: ProfileType.OWNER,
       },
     });
   }
@@ -131,7 +132,7 @@ async function main() {
     createdMovies.push(movie);
   }
 
-  // Assign movies to theatres (creating theatreMovie and theatreMovieSeat records)
+  // Assign movies to theatres (creating theatreMovie and showSeat records)
   console.log("Assigning movies to theatres...");
 
   const SHOW_TIMES = [
@@ -155,7 +156,7 @@ async function main() {
       for (let showIndex = 0; showIndex < SHOW_TIMES.length; showIndex++) {
         const movie = createdMovies[(day * SHOW_TIMES.length + showIndex) % createdMovies.length];
 
-        const { hour, minute } = SHOW_TIMES[showIndex];
+        const { hour, minute } = SHOW_TIMES[showIndex] as { hour: number; minute: number };
 
         const start = new Date(showDate);
         start.setHours(hour, minute, 0, 0);
@@ -165,9 +166,9 @@ async function main() {
 
         const price = 150 + (showIndex % 4) * 50;
 
-        console.log(`${theatre.title} | ${movie.title} | ${start.toLocaleString()}`);
+        console.log(`${theatre.title} | ${movie?.title} | ${start.toLocaleString()}`);
 
-        await addMovieToTheatre(theatre.id, movie.id, start, end, price);
+        await addMovieToTheatre(theatre.id, movie?.id || "", start, end, price);
       }
     }
   }

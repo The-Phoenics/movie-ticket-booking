@@ -5,7 +5,7 @@ type SeatStatus = "AVAILABLE" | "SOLD";
 
 interface TheatreMovieSeatDto {
   id: string;
-  theatreMovieId: string;
+  showId: string;
   seatId: string;
   status: SeatStatus;
   price: number;
