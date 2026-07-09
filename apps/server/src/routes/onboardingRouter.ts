@@ -6,14 +6,6 @@ import express, { type Request, type Response, type Router } from "express";
 
 const onboardingRouter: Router = express.Router();
 
-/**
- * POST /onboard
- * Creates the role-specific profile and marks the user as onboarded.
- * Sets user.isOnboarded = true on success.
- *
- * Body for CUSTOMER:  { role: "CUSTOMER", name: string }
- * Body for BUSINESS:  { role: "BUSINESS", title: string, address: string, city: string, country: string }
- */
 onboardingRouter.post("/", async (req: Request, res: Response) => {
   const session = await auth.api.getSession({
     headers: fromNodeHeaders(req.headers),
@@ -57,7 +49,7 @@ onboardingRouter.post("/", async (req: Request, res: Response) => {
       return res.status(200).json(apiJsonRseponse(true, { customer }, "Onboarding complete"));
     }
 
-    if (role === "BUSINESS") {
+    if (role === "OWNER") {
       const { title, address, city, country } = req.body as {
         title?: string;
         address?: string;

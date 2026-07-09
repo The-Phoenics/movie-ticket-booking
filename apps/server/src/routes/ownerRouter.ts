@@ -3,7 +3,7 @@ import {
   addMovieToTheatreController,
   createTheatreContoller,
   getTheatreMoviesController,
-} from "@/controllers/businessController";
+} from "@/controllers/ownerController";
 import { validateRequest, type ValidationSchemaType } from "@/middlewares";
 import z from "zod";
 import {
@@ -11,7 +11,7 @@ import {
   deleteSeatsController,
 } from "@/controllers/seatController";
 
-const businessRouter: Router = express.Router();
+const ownerRouter: Router = express.Router();
 
 const CreateTheatreRequestSchema: ValidationSchemaType = {
   body: z.object({
@@ -51,34 +51,34 @@ const AddMovieToTheatre: ValidationSchemaType = {
 };
 
 // create theatre
-businessRouter.post(
+ownerRouter.post(
   "/theatres",
   validateRequest(CreateTheatreRequestSchema),
   createTheatreContoller,
 );
 
 // create seats for theatre in bulk
-businessRouter.post(
+ownerRouter.post(
   "/:theatreId/seats",
   validateRequest(CreateSeatsRequestSchema),
   createSeatsController,
 );
 
 // delete seats for theatre in bulk
-businessRouter.delete(
+ownerRouter.delete(
   "/:theatreId/seats",
   validateRequest(DeleteSeatsRequestSchema),
   deleteSeatsController,
 );
 
 // add movie to theatre
-businessRouter.post(
+ownerRouter.post(
   "/:theatreId/add/:movieId",
   validateRequest(AddMovieToTheatre),
   addMovieToTheatreController,
 );
 
 // get theatre movies
-businessRouter.get("/:theatreId/movies", getTheatreMoviesController);
+ownerRouter.get("/:theatreId/movies", getTheatreMoviesController);
 
-export default businessRouter;
+export default ownerRouter;

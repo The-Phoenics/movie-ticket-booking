@@ -10,17 +10,16 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String      @id @default(cuid())
   email         String
   name          String?
-  emailVerified Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  isOnboarded   Boolean   @default(false)
-  isAdmin       Boolean   @default(false)
+  emailVerified Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  isOnboarded   Boolean     @default(false)
   sessions      Session[]
   accounts      Account[]
-  role          Role      @default(CUSTOMER)
+  role          ProfileType @default(CUSTOMER)
   customer      Customer?
   theatre       Theatre?
 
@@ -76,30 +75,10 @@ model Verification {
   @@map("verification")
 }
 
-model RolePermissions {
-  id          String       @id
-  role        Role         @unique
-  permissions Permission[]
-}
-
-enum Role {
-  ADMIN
+enum ProfileType {
   CUSTOMER
-  BUSINESS
-  THEATRE_MANAGER
-}
-
-enum Permission {
-  THEATRE_READ        @map("theatre:read")
-  THEATRE_CREATE      @map("theatre:create")
-  THEATRE_DELETE      @map("theatre:delete")
-  THEATRE_WRITE       @map("theatre:write")
-  THEATRE_ADDMOVIE    @map("theatre:addmovie")
-  THEATRE_UPDATEMOVIE @map("theatre:updatemovie")
-
-  SCREEN_CREATE @map("screen:read")
-  SCREEN_WRITE  @map("screen:write")
-  SCREEN_DELETE @map("screen:delete")
+  OWNER
+  ADMIN
 }
 
 model Customer {
@@ -109,101 +88,96 @@ model Customer {
 
   orders           Order[]
   ticket           Ticket[]
-  seatReservations TheatreMovieSeatReservation[]
-  user             User                          @relation(fields: [userId], references: [id])
+  seatReservations ShowSeatReservation[]
+  user             User                  @relation(fields: [userId], references: [id])
 }
 
 model Theatre {
-  id           String         @id @default(cuid())
-  userId       String         @unique
+  id           String @id @default(cuid())
+  userId       String @unique
   title        String
   address      String
   city         String
   country      String
-  theateMovies TheatreMovie[]
+  theateMovies Show[]
   seat         Seat[]
-  user         User           @relation(fields: [userId], references: [id])
+  user         User   @relation(fields: [userId], references: [id])
 }
 
 model Movie {
-  id           String         @id @default(cuid())
+  id           String      @id @default(cuid())
   title        String
   description  String
   rating       Int
-  crew         Json           @default("{}")
+  crew         Json        @default("{}")
   tags         MOVIE_TAG[]
-  theateMovies TheatreMovie[]
+  theateMovies Show[]
 }
 
-model TheatreMovie {
-  id                String             @id @default(cuid())
-  theatreId         String
-  movieId           String
-  startTime         DateTime
-  endTime           DateTime
-  theatre           Theatre            @relation(fields: [theatreId], references: [id])
-  movie             Movie              @relation(fields: [movieId], references: [id])
-  theatreMovieSeats TheatreMovieSeat[]
+model Show {
+  id        String     @id @default(cuid())
+  theatreId String
+  movieId   String
+  startTime DateTime
+  endTime   DateTime
+  theatre   Theatre    @relation(fields: [theatreId], references: [id])
+  movie     Movie      @relation(fields: [movieId], references: [id])
+  showSeats ShowSeat[]
 
   @@unique([theatreId, movieId, startTime])
 }
 
 model Seat {
-  id                String             @id @default(cuid())
+  id                String     @id @default(cuid())
   theatreId         String
   row               String
   col               Int
-  theatre           Theatre            @relation(fields: [theatreId], references: [id])
-  threatreMovieSeat TheatreMovieSeat[]
+  theatre           Theatre    @relation(fields: [theatreId], references: [id])
+  threatreMovieSeat ShowSeat[]
 
   @@unique([theatreId, row, col])
 }
-
-// enum SEAT_CLASS {
-//   CLASSIC
-//   PREMIUM
-// }
 
 enum SEAT_STATUS {
   AVAILABLE
   SOLD
 }
 
-model TheatreMovieSeat {
-  id             String      @id @default(cuid())
-  theatreMovieId String
-  seatId         String
-  status         SEAT_STATUS @default(AVAILABLE)
-  price          Int
+model ShowSeat {
+  id     String      @id @default(cuid())
+  showId String
+  seatId String
+  status SEAT_STATUS @default(AVAILABLE)
+  price  Int
 
-  theatreMovie TheatreMovie                  @relation(fields: [theatreMovieId], references: [id])
-  seat         Seat                          @relation(fields: [seatId], references: [id])
-  reservations TheatreMovieSeatReservation[]
-  ticket       Ticket?
-  orders       Order[]
+  show             Show                  @relation(fields: [showId], references: [id])
+  seat             Seat                  @relation(fields: [seatId], references: [id])
+  seatReservations ShowSeatReservation[]
+  ticket           Ticket?
+  orders           Order[]
 
-  @@unique([seatId, theatreMovieId])
+  @@unique([seatId, showId])
 }
 
-model TheatreMovieSeatReservation {
-  id                 String   @id @default(cuid())
-  customerId         String
-  theatreMovieSeatId String
-  reservedAt         DateTime
-  duration           Int
+model ShowSeatReservation {
+  id         String   @id @default(cuid())
+  customerId String
+  showSeatId String
+  reservedAt DateTime
+  duration   Int
 
-  customer         Customer         @relation(fields: [customerId], references: [id])
-  theatreMovieSeat TheatreMovieSeat @relation(fields: [theatreMovieSeatId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+  showSeat ShowSeat @relation(fields: [showSeatId], references: [id])
 }
 
 model Ticket {
-  id                 String   @id @default(cuid())
-  theatreMovieSeatId String   @unique
-  createdAt          DateTime @default(now())
-  customerId         String
+  id         String   @id @default(cuid())
+  showSeatId String   @unique
+  createdAt  DateTime @default(now())
+  customerId String
 
-  customer         Customer         @relation(fields: [customerId], references: [id])
-  theatreMovieSeat TheatreMovieSeat @relation(fields: [theatreMovieSeatId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+  showSeat ShowSeat @relation(fields: [showSeatId], references: [id])
 }
 
 enum ORDER_STATUS {
@@ -228,15 +202,15 @@ enum PAYMENT_PROVIDER {
 }
 
 model Order {
-  id                 String           @id @default(cuid())
-  status             ORDER_STATUS
-  customerId         String
-  theatreMovieSeatId String
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  payment            Payment?
-  customer           Customer         @relation(fields: [customerId], references: [id])
-  theatreMovieSeat   TheatreMovieSeat @relation(fields: [theatreMovieSeatId], references: [id])
+  id         String       @id @default(cuid())
+  status     ORDER_STATUS
+  customerId String
+  showSeatId String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  payment    Payment?
+  customer   Customer     @relation(fields: [customerId], references: [id])
+  showSeat   ShowSeat     @relation(fields: [showSeatId], references: [id])
 }
 
 model Payment {
