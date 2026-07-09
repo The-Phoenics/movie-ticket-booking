@@ -18,13 +18,9 @@ import {
 import Link from "next/link";
 import type { Route } from "next";
 
-type Role = "CUSTOMER" | "BUSINESS";
+type Role = "CUSTOMER" | "OWNER";
 
-function RolePicker({
-  onSelect,
-}: {
-  onSelect: (role: Role) => void;
-}) {
+function RolePicker({ onSelect }: { onSelect: (role: Role) => void }) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-zinc-400 text-center mb-6">
@@ -34,14 +30,14 @@ function RolePicker({
       <button
         type="button"
         onClick={() => onSelect("CUSTOMER")}
-        className="group w-full flex items-start gap-4 rounded-2xl border border-zinc-700 bg-zinc-800/50 p-5 text-left transition-all hover:border-red-500/50 hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-red-500/30"
+        className="group hover:cursor-pointer w-full flex items-start gap-4 rounded-2xl border border-zinc-700 bg-zinc-800/50 p-5 text-left transition-all hover:border-red-500/50 hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-red-500/30"
       >
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-600/15 text-red-400 group-hover:bg-red-600/25 transition-colors">
           <User className="h-5 w-5" />
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <p className="font-semibold text-zinc-100">Movie-Goer</p>
+            <p className="font-semibold text-zinc-100">Browse Movies</p>
             <ChevronRight className="h-4 w-4 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
           </div>
           <p className="mt-0.5 text-sm text-zinc-500">
@@ -52,15 +48,15 @@ function RolePicker({
 
       <button
         type="button"
-        onClick={() => onSelect("BUSINESS")}
-        className="group w-full flex items-start gap-4 rounded-2xl border border-zinc-700 bg-zinc-800/50 p-5 text-left transition-all hover:border-red-500/50 hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-red-500/30"
+        onClick={() => onSelect("OWNER")}
+        className="group hover:cursor-pointer w-full flex items-start gap-4 rounded-2xl border border-zinc-700 bg-zinc-800/50 p-5 text-left transition-all hover:border-red-500/50 hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-red-500/30"
       >
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-600/15 text-orange-400 group-hover:bg-orange-600/25 transition-colors">
           <Building2 className="h-5 w-5" />
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <p className="font-semibold text-zinc-100">Theatre Owner</p>
+            <p className="font-semibold text-zinc-100">Owner</p>
             <ChevronRight className="h-4 w-4 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
           </div>
           <p className="mt-0.5 text-sm text-zinc-500">
@@ -96,7 +92,10 @@ function CustomerForm({
       </p>
 
       <div className="space-y-1.5">
-        <label htmlFor="customer-name" className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+        <label
+          htmlFor="customer-name"
+          className="text-xs font-medium uppercase tracking-wide text-zinc-500"
+        >
           Display Name
         </label>
         <div className="relative">
@@ -162,7 +161,8 @@ function BusinessForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !address.trim() || !city.trim() || !country.trim()) return;
+    if (!title.trim() || !address.trim() || !city.trim() || !country.trim())
+      return;
     onSubmit({
       title: title.trim(),
       address: address.trim(),
@@ -178,7 +178,10 @@ function BusinessForm({
       </p>
 
       <div className="space-y-1.5">
-        <label htmlFor="theatre-title" className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+        <label
+          htmlFor="theatre-title"
+          className="text-xs font-medium uppercase tracking-wide text-zinc-500"
+        >
           Theatre Name
         </label>
         <input
@@ -194,7 +197,10 @@ function BusinessForm({
       </div>
 
       <div className="space-y-1.5">
-        <label htmlFor="theatre-address" className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+        <label
+          htmlFor="theatre-address"
+          className="text-xs font-medium uppercase tracking-wide text-zinc-500"
+        >
           Street Address
         </label>
         <div className="relative">
@@ -213,7 +219,10 @@ function BusinessForm({
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <label htmlFor="theatre-city" className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+          <label
+            htmlFor="theatre-city"
+            className="text-xs font-medium uppercase tracking-wide text-zinc-500"
+          >
             City
           </label>
           <input
@@ -227,7 +236,10 @@ function BusinessForm({
           />
         </div>
         <div className="space-y-1.5">
-          <label htmlFor="theatre-country" className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+          <label
+            htmlFor="theatre-country"
+            className="text-xs font-medium uppercase tracking-wide text-zinc-500"
+          >
             Country
           </label>
           <input
@@ -252,7 +264,13 @@ function BusinessForm({
         </button>
         <button
           type="submit"
-          disabled={isSubmitting || !title.trim() || !address.trim() || !city.trim() || !country.trim()}
+          disabled={
+            isSubmitting ||
+            !title.trim() ||
+            !address.trim() ||
+            !city.trim() ||
+            !country.trim()
+          }
           className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-900/40 transition-all hover:bg-red-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400 disabled:shadow-none"
         >
           {isSubmitting ? (
@@ -303,7 +321,11 @@ function ProgressDots({ step, total }: { step: number; total: number }) {
         <span
           key={i}
           className={`h-1.5 rounded-full transition-all ${
-            i < step ? "w-6 bg-red-500" : i === step ? "w-4 bg-zinc-400" : "w-1.5 bg-zinc-700"
+            i < step
+              ? "w-6 bg-red-500"
+              : i === step
+                ? "w-4 bg-zinc-400"
+                : "w-1.5 bg-zinc-700"
           }`}
         />
       ))}
@@ -424,7 +446,7 @@ export default function OnboardingPage() {
             />
           )}
 
-          {step === "details" && selectedRole === "BUSINESS" && (
+          {step === "details" && selectedRole === "OWNER" && (
             <BusinessForm
               onSubmit={handleOnboardSubmit}
               onBack={() => setStep("role")}
@@ -432,7 +454,9 @@ export default function OnboardingPage() {
             />
           )}
 
-          {step === "done" && selectedRole && <OnboardingSuccess role={selectedRole} />}
+          {step === "done" && selectedRole && (
+            <OnboardingSuccess role={selectedRole} />
+          )}
         </div>
       </div>
     </div>

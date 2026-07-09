@@ -5,8 +5,13 @@ import {
   getTheatreMovieSeatsController,
   reserveMovieSeatController,
   bookMovieSeatController,
+  searchMovieController,
 } from "@/controllers/movieController";
-import { authRequired, validateRequest, type ValidationSchemaType } from "@/middlewares";
+import {
+  authRequired,
+  validateRequest,
+  type ValidationSchemaType,
+} from "@/middlewares";
 import z from "zod";
 import { createMovieContoller } from "@/controllers/movieController";
 
@@ -53,6 +58,14 @@ const SeatBookRequestSchema: ValidationSchemaType = {
   }),
 };
 
+const MovieSearchRequestSchema: ValidationSchemaType = {
+  query: z.object({
+    q: z.string().min(3),
+    genre: z.string().optional(),
+    sortBy: z.string().optional(),
+  }),
+};
+
 const moviesRouter: Router = express.Router();
 
 // create movie
@@ -66,7 +79,11 @@ moviesRouter.post(
 moviesRouter.get("/", getMoviesController);
 
 // get movie with available theatres with timing
-moviesRouter.get("/:movieId", validateRequest(GetMovieValidationSchema), getMovieController);
+moviesRouter.get(
+  "/:movieId",
+  validateRequest(GetMovieValidationSchema),
+  getMovieController,
+);
 
 // get theatre movie seats (seats reservation page)
 moviesRouter.get(
@@ -87,6 +104,12 @@ moviesRouter.post(
   authRequired,
   validateRequest(SeatBookRequestSchema),
   bookMovieSeatController,
+);
+
+moviesRouter.get(
+  "/search",
+  validateRequest(MovieSearchRequestSchema),
+  searchMovieController,
 );
 
 export default moviesRouter;

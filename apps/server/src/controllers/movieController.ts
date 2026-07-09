@@ -5,8 +5,15 @@ import {
   getMovies,
   getShowSeats,
 } from "@/services/movieService";
-import { reserveTheatreMovieSeat, verifySeatReservationForUser } from "@/services/seatService";
-import { apiJsonRseponse, convertIntoSmallestCurrencyUnit, minutesToSeconds } from "@/utils";
+import {
+  reserveTheatreMovieSeat,
+  verifySeatReservationForUser,
+} from "@/services/seatService";
+import {
+  apiJsonRseponse,
+  convertIntoSmallestCurrencyUnit,
+  minutesToSeconds,
+} from "@/utils";
 import redisClient from "@movie-ticket-booking/cache";
 import prisma from "@movie-ticket-booking/db";
 import { SEAT_RESERVATION_DURATION } from "@movie-ticket-booking/shared/constants";
@@ -19,7 +26,11 @@ import {
 import type { NextFunction } from "express";
 import type { Request, Response } from "express";
 
-export async function createMovieContoller(req: Request, res: Response, next: NextFunction) {
+export async function createMovieContoller(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const user = req.user;
     if (!user || !user.id) {
@@ -31,29 +42,45 @@ export async function createMovieContoller(req: Request, res: Response, next: Ne
     if (!crew) crew = {};
     const movieData = { title, description, rating, crew, tags };
     const createdMovie = await createMovie(movieData);
-    res.status(201).json(apiJsonRseponse(true, createdMovie, "Successfully created movie", null));
+    res
+      .status(201)
+      .json(
+        apiJsonRseponse(true, createdMovie, "Successfully created movie", null),
+      );
   } catch (err) {
     next(err);
   }
 }
 
 // TODO: add pagination and filters
-export async function getMoviesController(req: Request, res: Response, next: NextFunction) {
+export async function getMoviesController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const movies = await getMovies();
-    return res.status(200).json(apiJsonRseponse(true, movies, "Successfully fetched movies"));
+    return res
+      .status(200)
+      .json(apiJsonRseponse(true, movies, "Successfully fetched movies"));
   } catch (err) {
     next(err);
   }
 }
 
-export async function getMovieController(req: Request, res: Response, next: NextFunction) {
+export async function getMovieController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const movieId = req.params.movieId as string;
     if (!movieId) throw new ServerApiError("Invalid movie id provided", 401);
 
     const movies = await getMovieDetailsAndTheatres(movieId);
-    return res.status(200).json(apiJsonRseponse(true, movies, "Successfully fetched movies"));
+    return res
+      .status(200)
+      .json(apiJsonRseponse(true, movies, "Successfully fetched movies"));
   } catch (err) {
     next(err);
   }
@@ -66,34 +93,57 @@ export async function getTheatreMovieSeatsController(
 ) {
   try {
     const showId = req.params.showId as string;
-    if (!showId) throw new ServerApiError("Invalid theatre movie id provided", 401);
+    if (!showId)
+      throw new ServerApiError("Invalid theatre movie id provided", 401);
 
-    const theatreMovie = await prisma.show.findUnique({ where: { id: showId } })
-    if (!theatreMovie) throw new ServerApiError("Invalid theatre movie id provided", 401);
+    const theatreMovie = await prisma.show.findUnique({
+      where: { id: showId },
+    });
+    if (!theatreMovie)
+      throw new ServerApiError("Invalid theatre movie id provided", 401);
 
     const seats = await getShowSeats(showId);
     return res
       .status(200)
-      .json(apiJsonRseponse(true, seats, "Successfully fetched theatre movie seats"));
+      .json(
+        apiJsonRseponse(
+          true,
+          seats,
+          "Successfully fetched theatre movie seats",
+        ),
+      );
   } catch (err) {
     next(err);
   }
 }
 
-export async function reserveMovieSeatController(req: Request, res: Response, next: NextFunction) {
+export async function reserveMovieSeatController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const showId = req.params.showId as string;
     const showSeatId = req.params.showSeatId as string;
     const user = req.user;
     if (!user || !user.id || user.role !== ProfileType.CUSTOMER) {
-      throw new ServerApiError("Invalid session or invalid request by user", 401);
+      throw new ServerApiError(
+        "Invalid session or invalid request by user",
+        401,
+      );
     }
     if (!showId) throw new ServerApiError("Invalid theatre movie", 401);
-    if (!showSeatId) throw new ServerApiError("Invalid theatre movie seat", 401);
+    if (!showSeatId)
+      throw new ServerApiError("Invalid theatre movie seat", 401);
 
-    const customer = await prisma.customer.findUnique({ where: { userId: user.id } });
+    const customer = await prisma.customer.findUnique({
+      where: { userId: user.id },
+    });
     if (!customer) {
-      throw new ServerApiError("Unauthorized user making request to buy ticket", 402);
+      throw new ServerApiError(
+        "Unauthorized user making request to buy ticket",
+        402,
+      );
     }
 
     // check redis for reservation
@@ -117,7 +167,9 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
         );
       }
       // if reserved for another user return not available
-      return res.status(200).json(apiJsonRseponse(false, {}, "Seat not available right now", 200));
+      return res
+        .status(200)
+        .json(apiJsonRseponse(false, {}, "Seat not available right now", 200));
     }
 
     // call reserve seat service
@@ -149,13 +201,24 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
 
     return res
       .status(201)
-      .json(apiJsonRseponse(true, { reservedFor: user }, "Seat successfully reserved", null));
+      .json(
+        apiJsonRseponse(
+          true,
+          { reservedFor: user },
+          "Seat successfully reserved",
+          null,
+        ),
+      );
   } catch (err) {
     next(err);
   }
 }
 
-export async function bookMovieSeatController(req: Request, res: Response, next: NextFunction) {
+export async function bookMovieSeatController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const showId = req.params.showId as string;
     const showSeatId = req.params.showSeatId as string;
@@ -164,12 +227,16 @@ export async function bookMovieSeatController(req: Request, res: Response, next:
 
     const amount = Number.parseInt(req.body.amount);
     const currency = req.body.currency as CURRENCY;
-    if (!amount || isNaN(amount)) throw new ServerApiError("Invalid amount input", 401);
+    if (!amount || isNaN(amount))
+      throw new ServerApiError("Invalid amount input", 401);
     if (!currency) throw new ServerApiError("Invalid currency input", 401);
 
     const user = req.user;
     if (!user || !user.id) {
-      throw new ServerApiError("Unauthorized user making request to buy ticket", 402);
+      throw new ServerApiError(
+        "Unauthorized user making request to buy ticket",
+        402,
+      );
     }
 
     // verify user who's booking with the user who has reserved
@@ -177,11 +244,17 @@ export async function bookMovieSeatController(req: Request, res: Response, next:
       where: { userId: user.id },
     });
     if (!customer) {
-      throw new ServerApiError("Unauthorized user making request to buy ticket", 402);
+      throw new ServerApiError(
+        "Unauthorized user making request to buy ticket",
+        402,
+      );
     }
     const verified = verifySeatReservationForUser(customer.id, showSeatId);
     if (!verified) {
-      throw new ServerApiError("Seat is reserved for the user trying to buy the seat", 401);
+      throw new ServerApiError(
+        "Seat is reserved for the user trying to buy the seat",
+        401,
+      );
     }
 
     // create draft order and payment with pending states, store payment providers id
@@ -223,11 +296,12 @@ export async function bookMovieSeatController(req: Request, res: Response, next:
         },
       );
     } catch (err) {
-      console.log("error:", err)
+      console.log("error:", err);
       throw new ServerApiError(
-        "Failed to create payment intent to buy ticket with order.id: " + result.id,
+        "Failed to create payment intent to buy ticket with order.id: " +
+          result.id,
         500,
-        err
+        err,
       );
     }
 
@@ -254,9 +328,32 @@ export async function bookMovieSeatController(req: Request, res: Response, next:
       }),
     );
   } catch (err) {
-    console.log("Error booking movie seat: ", err)
+    console.log("Error booking movie seat: ", err);
     next(err);
   }
 }
 
 // TODO: handle booking of muliple seats
+
+// TODO: movie search api
+export async function searchMovieController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const searchQueryString = req.query.q as string;
+    const genreQueryString = req.query.genre as string;
+    const sortByQueryString = req.query.sortBy as string;
+
+    // return res.status(200).json(
+    //   apiJsonRseponse(true, {
+    //     clientSecret: paymentIntent.client_secret,
+    //     orderId: result.id,
+    //   }),
+    // );
+  } catch (err) {
+    console.log("Error booking movie seat: ", err);
+    next(err);
+  }
+}

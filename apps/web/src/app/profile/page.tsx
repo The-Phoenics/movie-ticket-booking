@@ -5,7 +5,17 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { env } from "@movie-ticket-booking/env/web";
 import { toast } from "sonner";
-import { User, Building2, Mail, MapPin, Tag, Loader2, Save, ArrowLeft, Film } from "lucide-react";
+import {
+  User,
+  Building2,
+  Mail,
+  MapPin,
+  Tag,
+  Loader2,
+  Save,
+  ArrowLeft,
+  Film,
+} from "lucide-react";
 import Link from "next/link";
 import type { Route } from "next";
 
@@ -57,7 +67,10 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={id} className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+      <label
+        htmlFor={id}
+        className="text-xs font-medium uppercase tracking-wide text-zinc-500"
+      >
         {label}
       </label>
       <div className="relative">
@@ -77,8 +90,6 @@ function Field({
     </div>
   );
 }
-
-// ─── Customer form ────────────────────────────────────────────────────────────
 
 function CustomerProfileForm({
   profile,
@@ -124,16 +135,18 @@ function CustomerProfileForm({
       <button
         type="submit"
         disabled={isSaving || !isDirty || !name.trim() || !emailVal.trim()}
-        className="flex items-center gap-2 rounded-xl bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-900/40 transition-all hover:bg-red-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400 disabled:shadow-none"
+        className="flex items-center hover:cursor-pointer mt-4 gap-2 rounded-xl bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-900/40 transition-all hover:bg-red-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400 disabled:shadow-none"
       >
-        {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+        {isSaving ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Save className="h-4 w-4" />
+        )}
         {isSaving ? "Saving…" : "Save Changes"}
       </button>
     </form>
   );
 }
-
-// ─── Business form ────────────────────────────────────────────────────────────
 
 function BusinessProfileForm({
   profile,
@@ -166,7 +179,11 @@ function BusinessProfileForm({
     country !== profile.country;
 
   const isValid =
-    emailVal.trim() && title.trim() && address.trim() && city.trim() && country.trim();
+    emailVal.trim() &&
+    title.trim() &&
+    address.trim() &&
+    city.trim() &&
+    country.trim();
 
   return (
     <form
@@ -222,14 +239,16 @@ function BusinessProfileForm({
         disabled={isSaving || !isDirty || !isValid}
         className="flex items-center gap-2 rounded-xl bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-900/40 transition-all hover:bg-red-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400 disabled:shadow-none"
       >
-        {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+        {isSaving ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Save className="h-4 w-4" />
+        )}
         {isSaving ? "Saving…" : "Save Changes"}
       </button>
     </form>
   );
 }
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -278,7 +297,10 @@ export default function ProfilePage() {
                   ...prev.user,
                   email: data.email ?? prev.user.email,
                   customer: prev.user.customer
-                    ? { ...prev.user.customer, name: data.name ?? prev.user.customer.name }
+                    ? {
+                        ...prev.user.customer,
+                        name: data.name ?? prev.user.customer.name,
+                      }
                     : null,
                   theatre: prev.user.theatre
                     ? {
@@ -352,21 +374,10 @@ export default function ProfilePage() {
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-red-600/15 text-red-400 text-xl font-bold select-none">
             {initials}
           </div>
-          <div>
+          <div className="flex">
             <h1 className="text-2xl font-bold text-zinc-100">
               {isCustomer ? user.customer?.name : user.theatre?.title}
             </h1>
-            <div className="mt-1 flex items-center gap-2">
-              <span
-                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                  isCustomer ? "bg-red-600/15 text-red-400" : "bg-orange-600/15 text-orange-400"
-                }`}
-              >
-                {isCustomer ? <User className="h-3 w-3" /> : <Building2 className="h-3 w-3" />}
-                {isCustomer ? "Movie-Goer" : "Theatre Owner"}
-              </span>
-              <span className="text-sm text-zinc-500">{user.email}</span>
-            </div>
           </div>
         </div>
 

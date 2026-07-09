@@ -1,6 +1,6 @@
 import { ServerApiError } from "@/lib";
 import prisma from "@movie-ticket-booking/db";
-import type { Theatre, Show, ShowSeatReservation, ShowSeat } from "@movie-ticket-booking/shared/types";
+import type { Show, ShowSeatReservation, ShowSeat } from "@movie-ticket-booking/shared/types";
 import type { MovieCreateInput } from "../../../../packages/db/prisma/generated/internal/prismaNamespace";
 import { format } from "date-fns";
 import { updateTheatreMovieSeatExpiredReservation } from "./seatService";

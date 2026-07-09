@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LogOut, User, Building2, ChevronDown, Film } from "lucide-react";
+import { LogOut, User, ChevronDown, Film } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { useState, useRef, useEffect } from "react";
 import type { Route } from "next";
@@ -90,18 +90,11 @@ export default function UserMenu() {
                 {initials}
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-zinc-100 truncate">{displayName}</p>
-                <p className="text-xs text-zinc-500 truncate">{user.email}</p>
+                <p className="text-sm font-semibold text-zinc-100 truncate">
+                  {displayName}
+                </p>
               </div>
             </div>
-            <span
-              className={`mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
-                isCustomer ? "bg-red-600/15 text-red-400" : "bg-orange-600/15 text-orange-400"
-              }`}
-            >
-              {isCustomer ? <User className="h-3 w-3" /> : <Building2 className="h-3 w-3" />}
-              {isCustomer ? "Movie-Goer" : "Theatre Owner"}
-            </span>
           </div>
 
           {/* Menu items */}
