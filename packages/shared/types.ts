@@ -13,3 +13,13 @@ declare global {
 export type AuthenticatedRequest = Request & {
   user: User;
 };
+
+export enum QUEUE_TYPE {
+  SEND_TICKET_QUEUE = "send-ticket-queue",
+  // EMAIL_QUEUE
+}
+
+//
+export type SendTicketJobDataType = {} & {
+  shortUrlId: string;
+};

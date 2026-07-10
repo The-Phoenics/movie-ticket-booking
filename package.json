@@ -19,7 +19,8 @@
       "sonner": "^2.0.5",
       "@types/react": "^19.2.15",
       "@types/react-dom": "^19.2.3",
-      "tailwindcss": "^4.1.18"
+      "tailwindcss": "^4.1.18",
+      "bullmq": "^5.80.0"
     }
   },
   "type": "module",

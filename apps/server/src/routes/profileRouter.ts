@@ -1,5 +1,6 @@
 import { apiJsonRseponse } from "@/utils";
 import prisma from "@movie-ticket-booking/db";
+import { ProfileType } from "@movie-ticket-booking/shared/types";
 import express, { type Request, type Response, type Router } from "express";
 
 const profileRouter: Router = express.Router();
@@ -70,7 +71,7 @@ profileRouter.patch("/", async (req: Request, res: Response) => {
       });
     }
 
-    if (dbUser.role === "CUSTOMER") {
+    if (dbUser.role === ProfileType.CUSTOMER) {
       if (name === undefined) {
         return res.status(400).json(apiJsonRseponse(false, null, "No fields to update"));
       }
@@ -86,7 +87,7 @@ profileRouter.patch("/", async (req: Request, res: Response) => {
       return res.status(200).json(apiJsonRseponse(true, { customer: updated }, "Profile updated"));
     }
 
-    if (dbUser.role === "BUSINESS") {
+    if (dbUser.role === ProfileType.OWNER) {
       const updateData: Record<string, string> = {};
       if (title !== undefined) updateData.title = title.trim();
       if (address !== undefined) updateData.address = address.trim();

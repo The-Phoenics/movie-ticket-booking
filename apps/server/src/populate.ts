@@ -29,7 +29,7 @@ async function main() {
   console.log("Database cleaned.");
 
   console.log("Creating users...");
-  const businessUsers = populate.users.filter((u: any) => u.role === "BUSINESS");
+  const businessUsers = populate.users.filter((u: any) => u.role === "OWNER");
   const customerUsers = populate.users.filter((u: any) => u.role === "CUSTOMER");
 
   // Create customer users

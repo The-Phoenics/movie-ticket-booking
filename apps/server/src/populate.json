@@ -4,7 +4,7 @@
       "name": "johnb",
       "email": "john.business@example.com",
       "password": "john business",
-      "role": "BUSINESS"
+      "role": "OWNER"
     },
     {
       "name": "johnc",

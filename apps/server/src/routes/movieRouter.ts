@@ -4,7 +4,7 @@ import {
   getMovieController,
   getTheatreMovieSeatsController,
   reserveMovieSeatController,
-  bookMovieSeatController,
+  buyMovieSeatController,
   searchMovieController,
 } from "@/controllers/movieController";
 import {
@@ -103,7 +103,7 @@ moviesRouter.post(
   "/:movieId/:showId/book/:showSeatId",
   authRequired,
   validateRequest(SeatBookRequestSchema),
-  bookMovieSeatController,
+  buyMovieSeatController,
 );
 
 moviesRouter.get(

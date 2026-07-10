@@ -66,7 +66,7 @@ export async function addMovieToTheatreController(req: Request, res: Response, n
   }
 }
 
-export async function getTheatreMoviesController(req: Request, res: Response, next: NextFunction) {
+export async function getShowController(req: Request, res: Response, next: NextFunction) {
   // TODO: create a valiate theatre request reusable function to verify if theatre is valid or not
   const theatreId = req.params.theatreId as string;
   if (!theatreId) {

@@ -2,7 +2,7 @@ import express, { Router } from "express";
 import {
   addMovieToTheatreController,
   createTheatreContoller,
-  getTheatreMoviesController,
+  getShowController,
 } from "@/controllers/ownerController";
 import { validateRequest, type ValidationSchemaType } from "@/middlewares";
 import z from "zod";
@@ -79,6 +79,6 @@ ownerRouter.post(
 );
 
 // get theatre movies
-ownerRouter.get("/:theatreId/movies", getTheatreMoviesController);
+ownerRouter.get("/:theatreId/movies", getShowController);
 
 export default ownerRouter;

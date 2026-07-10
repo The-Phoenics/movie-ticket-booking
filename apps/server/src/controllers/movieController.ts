@@ -214,7 +214,7 @@ export async function reserveMovieSeatController(
   }
 }
 
-export async function bookMovieSeatController(
+export async function buyMovieSeatController(
   req: Request,
   res: Response,
   next: NextFunction,

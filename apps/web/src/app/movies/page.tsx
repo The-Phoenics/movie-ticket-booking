@@ -142,6 +142,9 @@ function MovieCard({ movie, index }: { movie: Movie; index: number }) {
               </span>
             )}
           </div>
+          {
+            // TODO: Add add Link element to add movie to theatre page if user is a owner
+          }
           <Link
             href={(`/movies/${movie.id}`) as Route}
             className="book-btn"

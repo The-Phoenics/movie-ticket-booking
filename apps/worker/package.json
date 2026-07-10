@@ -1,0 +1,14 @@
+{
+  "name": "worker",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "bun run --hot src/index.ts"
+  },
+  "dependencies": {
+    "bullmq": "catalog:",
+    "@movie-ticket-booking/queue": "workspace:*",
+    "@movie-ticket-booking/shared": "workspace:*",
+    "@movie-ticket-booking/db": "workspace:*"
+  }
+}

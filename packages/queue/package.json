@@ -1,0 +1,14 @@
+{
+  "name": "@movie-ticket-booking/queue",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@movie-ticket-booking/shared": "workspace:*",
+    "bullmq": "catalog:"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:"
+  }
+}

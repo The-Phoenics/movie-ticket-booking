@@ -1,5 +1,6 @@
 import { ServerApiError, stripe } from "@/lib";
 import { env } from "@movie-ticket-booking/env/server";
+import sendTicketJob from "@movie-ticket-booking/queue";
 import express, { Router } from "express";
 
 const webhookRouter: Router = express.Router();
@@ -9,6 +10,12 @@ webhookRouter.use(
     type: "application/json",
   }),
 );
+
+interface PaymentEventMetadata {
+  customerId: string
+  orderId: string
+  showSeatId: string
+}
 
 webhookRouter.post("/stripe", async (req, res) => {
   // validate webhook request
@@ -31,6 +38,9 @@ webhookRouter.post("/stripe", async (req, res) => {
   switch (event.type) {
     case "payment_intent.succeeded":
       // handle payment succeeded
+      const paymentTicketInfo: PaymentEventMetadata = event.data.object.metadata
+      
+      // sendTicketJob()
       console.log("In evnet handler:", event.type);
       break;
     case "payment_intent.payment_failed":
