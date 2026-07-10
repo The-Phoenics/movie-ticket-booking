@@ -20,6 +20,7 @@ export enum QUEUE_TYPE {
 }
 
 //
-export type SendTicketJobDataType = {} & {
-  shortUrlId: string;
+export type SendTicketJobDataType = {
+  orderId: string;
+  showSeatId: string;
 };

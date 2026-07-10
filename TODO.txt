@@ -10,3 +10,7 @@ DONE: Add Role Toggle and Collect details, onboard user as Customer or Business 
 DONE: Add profile pages for both theatre and constumer
 - Add page for adding seats for theatre
 - Update /movies page, Customer can book ticket theatre can add movie to itself
+
+TODO:
+- Ticket confirmation: attach a QR to the ticket that has ticket id and detials it will be used to verify and mark  ticket as verified
+- Use tmdb api for movies 

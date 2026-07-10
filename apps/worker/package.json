@@ -6,9 +6,15 @@
     "dev": "bun run --hot src/index.ts"
   },
   "dependencies": {
-    "bullmq": "catalog:",
+    "@movie-ticket-booking/db": "workspace:*",
     "@movie-ticket-booking/queue": "workspace:*",
     "@movie-ticket-booking/shared": "workspace:*",
-    "@movie-ticket-booking/db": "workspace:*"
+    "bullmq": "catalog:",
+    "pdfkit": "^0.19.1",
+    "puppeteer": "^25.3.0"
+  },
+  "devDependencies": {
+    "@types/pdfkit": "^0.17.6",
+    "@types/puppeteer": "^7.0.4"
   }
 }

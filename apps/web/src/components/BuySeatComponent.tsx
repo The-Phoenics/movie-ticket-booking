@@ -56,7 +56,7 @@ function formatDate(iso: string) {
     year: "numeric",
   });
 }
-
+// TODO:CURRENT use this for ticekt pdf
 export default function BuyTheatreMovieSeat({
   selectedSeat,
   movieTitle,
