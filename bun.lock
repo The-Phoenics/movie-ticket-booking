@@ -50,6 +50,7 @@
       "name": "web",
       "version": "0.1.0",
       "dependencies": {
+        "@movie-ticket-booking/auth": "workspace:*",
         "@movie-ticket-booking/env": "workspace:*",
         "@movie-ticket-booking/shared": "workspace:*",
         "@movie-ticket-booking/ui": "workspace:*",

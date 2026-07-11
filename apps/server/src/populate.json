@@ -80,48 +80,6 @@
       ]
     }
   ],
-  "movies": [
-    {
-      "title": "The Dark Knight",
-      "description": "A movie about Batman.",
-      "rating": 5
-    },
-    {
-      "title": "Lord of the Rings",
-      "description": "Epic fantasy adventure.",
-      "rating": 5
-    },
-    {
-      "title": "The Matrix",
-      "description": "Mind-bending sci-fi.",
-      "rating": 5
-    },
-    {
-      "title": "The Avengers",
-      "description": "Marvel superhero team-up.",
-      "rating": 4
-    },
-    {
-      "title": "Interstellar",
-      "description": "Space exploration and time.",
-      "rating": 5
-    },
-    {
-      "title": "Inception",
-      "description": "Dream within a dream.",
-      "rating": 5
-    },
-    {
-      "title": "Avatar",
-      "description": "Pandora comes alive.",
-      "rating": 4
-    },
-    {
-      "title": "Spider-Man: No Way Home",
-      "description": "Multiverse adventure.",
-      "rating": 5
-    }
-  ],
   "showTimings": [
     {
       "theatre": "PVR Cinemas",

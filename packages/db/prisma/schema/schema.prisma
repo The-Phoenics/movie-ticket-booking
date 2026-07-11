@@ -106,7 +106,7 @@ model Theatre {
 
 model Movie {
   id                String   @id @default(cuid())
-  tmdbMovieId       String   @unique // tmdb movie id
+  tmdbMovieId       Int      @unique // tmdb movie id
   title             String
   overview          String
   adult             Boolean

@@ -2,7 +2,7 @@ import { ServerApiError, stripe } from "@/lib";
 import { convertIntoSmallestCurrencyUnit } from "@/utils";
 import { CURRENCY } from "@movie-ticket-booking/shared/types";
 
-export async function createStripePaymentIntent(amount: number, currency: CURRENCY) {
+export async function createStripePaymentIntent(amount: number, currency: CURRENCY): Promise<any> {
   try {
     const paymentIntent = await stripe.paymentIntents.create({
       // Amount value must be in the smallest currency unit (e.g., cents for USD)

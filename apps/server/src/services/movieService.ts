@@ -1,6 +1,6 @@
 import { ServerApiError } from "@/lib";
 import prisma from "@movie-ticket-booking/db";
-import type { Show, ShowSeatReservation, ShowSeat } from "@movie-ticket-booking/shared/types";
+import type { Show } from "@movie-ticket-booking/shared/types";
 import type { MovieCreateInput } from "../../../../packages/db/prisma/generated/internal/prismaNamespace";
 import { format } from "date-fns";
 import { updateTheatreMovieSeatExpiredReservation } from "./seatService";
@@ -133,9 +133,9 @@ export async function getShowSeats(showId: string) {
     // TODO: Also return the user with seat for whom the seat is reserved, so frontend won't show the seat as reserved the user for whom its already reserved
 
     // filter all the seats with expired reservation
-    const seatsWithExpiredReservation = seats.filter((s: ShowSeat) => {
+    const seatsWithExpiredReservation = seats.filter((s) => {
       let recentReservation = s.seatReservations[0];
-      s.seatReservations.forEach((reservation: ShowSeatReservation) => {
+      s.seatReservations.forEach((reservation) => {
         if (!recentReservation || reservation.reservedAt > recentReservation.reservedAt) {
           recentReservation = reservation;
         }

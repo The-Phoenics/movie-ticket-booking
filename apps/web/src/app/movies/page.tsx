@@ -94,6 +94,7 @@ const SORT_OPTIONS = [
 
 export default function MoviesPage() {
   const user = useAuth();
+  const userRole = user?.user.role
   const [search, setSearch] = useState("");
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("rating");

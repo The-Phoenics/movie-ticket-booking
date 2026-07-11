@@ -1,11 +1,10 @@
 "use client";
 
 import { authClient } from "@/lib/auth-client";
-import type { Route } from "next";
 import { createContext, useContext, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 
-type Session = Awaited<ReturnType<typeof authClient.getSession>>["data"];
+type Session = typeof authClient.$Infer.Session | null;
 
 export const AuthContext = createContext<Session | undefined>(undefined);
 

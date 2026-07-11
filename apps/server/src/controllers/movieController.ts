@@ -18,7 +18,6 @@ import {
   ProfileType,
   type TMDBMovieSearchFilter,
   type TMDBMoviesType,
-  type TMDBMovieType,
 } from "@movie-ticket-booking/shared/types";
 import type { NextFunction } from "express";
 import type { Request, Response } from "express";
@@ -30,10 +29,34 @@ export async function createMovieContoller(req: Request, res: Response, next: Ne
       throw new ServerApiError("Invalid user session req.user not found", 401);
     }
 
-    let { title, description, rating, crew, tags } = req.body;
-    if (!rating) rating = 0;
-    if (!crew) crew = {};
-    const movieData = { title, description, rating, crew, tags };
+    const {
+      tmdbMovieId,
+      title,
+      overview,
+      adult,
+      original_language,
+      release_date,
+      popularity,
+      status,
+      tagline,
+      img,
+      genres,
+    } = req.body;
+
+    const movieData = {
+      tmdbMovieId,
+      title,
+      overview,
+      adult: !!adult,
+      original_language,
+      release_date: new Date(release_date),
+      popularity: Math.round(popularity),
+      status,
+      tagline: tagline || "",
+      img,
+      genres: genres || [],
+    };
+
     const createdMovie = await createMovie(movieData);
     res.status(201).json(apiJsonRseponse(true, createdMovie, "Successfully created movie", null));
   } catch (err) {
@@ -42,7 +65,7 @@ export async function createMovieContoller(req: Request, res: Response, next: Ne
 }
 
 // TODO: add pagination and filters
-export async function getMoviesController(req: Request, res: Response, next: NextFunction) {
+export async function getMoviesController(_req: Request, res: Response, next: NextFunction) {
   try {
     const movies = await getMovies();
     return res.status(200).json(apiJsonRseponse(true, movies, "Successfully fetched movies"));

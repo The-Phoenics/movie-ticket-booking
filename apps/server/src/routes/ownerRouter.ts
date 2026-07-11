@@ -6,10 +6,7 @@ import {
 } from "@/controllers/ownerController";
 import { validateRequest, type ValidationSchemaType } from "@/middlewares";
 import z from "zod";
-import {
-  createSeatsController,
-  deleteSeatsController,
-} from "@/controllers/seatController";
+import { createSeatsController, deleteSeatsController } from "@/controllers/seatController";
 
 const ownerRouter: Router = express.Router();
 
@@ -43,19 +40,15 @@ const AddMovieToTheatre: ValidationSchemaType = {
     startTime: z.coerce.date(),
     endTime: z.coerce.date(),
     price: z.number().min(0),
+    tmdbMovieId: z.string().min(1),
   }),
   params: z.object({
     theatreId: z.string().min(1),
-    tmdbMovieId: z.string().min(1),
   }),
 };
 
 // create theatre
-ownerRouter.post(
-  "/theatres",
-  validateRequest(CreateTheatreRequestSchema),
-  createTheatreContoller,
-);
+ownerRouter.post("/theatres", validateRequest(CreateTheatreRequestSchema), createTheatreContoller);
 
 // create seats for theatre in bulk
 ownerRouter.post(
@@ -73,7 +66,7 @@ ownerRouter.delete(
 
 // add movie to theatre
 ownerRouter.post(
-  "/:theatreId/add/:movieId",
+  "/:theatreId/movies/add",
   validateRequest(AddMovieToTheatre),
   addMovieToTheatreController,
 );

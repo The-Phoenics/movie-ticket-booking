@@ -24,7 +24,8 @@
     "zod": "catalog:",
     "@stripe/stripe-js": "^9.8.0",
     "@stripe/react-stripe-js": "^6.6.0",
-    "@movie-ticket-booking/shared": "workspace:*"
+    "@movie-ticket-booking/shared": "workspace:*",
+    "@movie-ticket-booking/auth": "workspace:*"
   },
   "devDependencies": {
     "@movie-ticket-booking/config": "workspace:*",

@@ -33,7 +33,7 @@ export interface TMDBMovieSearchFilter {
 }
 
 export interface TMDBMovieType {
-  id: string;
+  id: number;
   title: string;
   overview: string;
   adult: boolean;
@@ -50,7 +50,7 @@ export interface TMDBMovieType {
 }
 
 export interface TMDBMoviesType {
-  id: string;
+  id: number;
   original_title: string;
   overview: string;
   adult: boolean;

@@ -10,15 +10,20 @@ import {
 import { authRequired, validateRequest, type ValidationSchemaType } from "@/middlewares";
 import z from "zod";
 import { createMovieContoller } from "@/controllers/movieController";
-import type { TMDBMovieSearchFilter } from "@movie-ticket-booking/shared/types";
 
 const CreateMovieRequestSchema: ValidationSchemaType = {
   body: z.object({
+    tmdbMovieId: z.string().min(1),
     title: z.string().min(1),
-    description: z.string().min(1),
-    rating: z.number().min(0).optional(),
-    crew: z.object().optional(),
-    tags: z.array(z.string()).optional(),
+    overview: z.string(),
+    adult: z.boolean(),
+    original_language: z.string(),
+    release_date: z.string(),
+    popularity: z.number(),
+    status: z.string(),
+    tagline: z.string(),
+    img: z.string(),
+    genres: z.array(z.object({ id: z.number(), name: z.string() })),
   }),
 };
 

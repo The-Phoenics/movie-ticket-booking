@@ -9,6 +9,7 @@ import { createTheatre, addMovieToTheatre } from "./services/ownerService";
 import { createSeatsBulk } from "./services/seatService";
 import { createMovie } from "./services/movieService";
 import { ProfileType } from "@movie-ticket-booking/shared/types";
+import { tmdbGetMovieById, tmdbSearchMovies } from "./services/tmdbMovieService";
 
 const populate = JSON.parse(fs.readFileSync(path.join(__dirname, "populate.json"), "utf8"));
 
@@ -40,12 +41,19 @@ async function main() {
         email: user.email,
         password: user.password,
         name: user.name,
-        role: ProfileType.CUSTOMER,
       },
     });
 
     const dbUser = await prisma.user.findUniqueOrThrow({
       where: { email: user.email },
+    });
+
+    await prisma.user.update({
+      where: { id: dbUser.id },
+      data: {
+        role: ProfileType.CUSTOMER,
+        isOnboarded: true,
+      },
     });
 
     await prisma.customer.create({
@@ -69,7 +77,6 @@ async function main() {
         name: `${sanitizedTitle}b`,
         email: `${sanitizedTitle}.business@example.com`,
         password: `${sanitizedTitle} business`,
-        role: "BUSINESS",
       };
     }
 
@@ -79,12 +86,19 @@ async function main() {
         email: businessUser.email,
         password: businessUser.password,
         name: businessUser.name,
-        role: ProfileType.OWNER,
       },
     });
 
     const dbUser = await prisma.user.findUniqueOrThrow({
       where: { email: businessUser.email },
+    });
+
+    await prisma.user.update({
+      where: { id: dbUser.id },
+      data: {
+        role: ProfileType.OWNER,
+        isOnboarded: true,
+      },
     });
 
     // Create theatre
@@ -100,7 +114,7 @@ async function main() {
     // Create seats for this theatre
     console.log(`Creating ${theatreData.seats.length} seats for theatre: ${theatreData.title}`);
     const createdSeats = await createSeatsBulk(theatreData.seats, createdTheatre.id);
-    console.log("======= created seats: -- ", createdSeats.length)
+    console.log("======= created seats: -- ", createdSeats.length);
 
     createdTheatres.push(createdTheatre);
   }
@@ -114,20 +128,55 @@ async function main() {
         email: businessUser.email,
         password: businessUser.password,
         name: businessUser.name,
+      },
+    });
+
+    const dbUser = await prisma.user.findUniqueOrThrow({
+      where: { email: businessUser.email },
+    });
+
+    await prisma.user.update({
+      where: { id: dbUser.id },
+      data: {
         role: ProfileType.OWNER,
+        isOnboarded: true,
       },
     });
   }
 
   // Create movies
   console.log("Creating movies...");
+  const tmdbMovies = await tmdbSearchMovies({
+    searchString: "spiderman",
+    adult: true,
+    page: 1,
+  });
+
+  const moviesFetched = await Promise.all(
+    tmdbMovies.map((m) => tmdbGetMovieById(m.id))
+  );
+
   const createdMovies = [];
-  for (const movieData of populate.movies) {
+  for (const movieData of moviesFetched) {
     console.log(`Creating movie: ${movieData.title}`);
+    const movieDataAny = movieData as any;
+    const basePath = "https://image.tmdb.org/t/p/";
+    const size = "w780";
+    const backdropPath = movieDataAny.backdrop_path || movieDataAny.poster_path || "";
+    const imgUrl = backdropPath ? new URL(`${size}${backdropPath}`, basePath).toString() : "";
+
     const { movie } = await createMovie({
+      tmdbMovieId: movieData.id,
       title: movieData.title,
-      description: movieData.description,
-      rating: movieData.rating,
+      overview: movieData.overview || "",
+      adult: !!movieData.adult,
+      original_language: movieData.original_language || "en",
+      release_date: new Date(movieData.release_date),
+      popularity: Math.round(movieData.popularity || 0),
+      img: imgUrl,
+      genres: (movieData.genres || []) as any,
+      tagline: movieData.tagline || "",
+      status: movieData.status || "Released",
     });
     createdMovies.push(movie);
   }

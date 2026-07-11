@@ -1,9 +1,6 @@
 import { apiJsonRseponse } from "@/utils";
 import { auth } from "@movie-ticket-booking/auth";
-import {
-  ProfileType,
-  type AuthenticatedRequest,
-} from "@movie-ticket-booking/shared/types";
+import { ProfileType, type AuthenticatedRequest } from "@movie-ticket-booking/shared/types";
 import z from "zod";
 import { fromNodeHeaders } from "better-auth/node";
 import type { NextFunction, Request, Response } from "express";
@@ -23,20 +20,22 @@ export async function authRequired(req: Request, res: Response, next: NextFuncti
   next();
 }
 
-export function validateCustomerRequestRole(req: Request, res: Response, next: NextFunction) {
+function validateRole(user: AuthenticatedRequest["user"], role: ProfileType) {
+  return user && user.role && user.role === role;
+}
+
+export function validateCustomerRole(req: Request, _res: Response, next: NextFunction) {
   const request = req as AuthenticatedRequest;
-  const user = request.user;
-  if (!user.role || user.role !== ProfileType.CUSTOMER) {
-    return res.json(apiJsonRseponse(false, null, "Unauthorized Request"));
+  if (!validateRole(request.user, ProfileType.CUSTOMER)) {
+    throw new ServerApiError("Missing owner role", 401);
   }
   next();
 }
 
-export function validateBusinessRequestRole(req: Request, res: Response, next: NextFunction) {
+export function validateOwnerRole(req: Request, _res: Response, next: NextFunction) {
   const request = req as AuthenticatedRequest;
-  const user = request.user;
-  if (!user.role || user.role !== ProfileType.OWNER) {
-    return res.json(apiJsonRseponse(false, null, "Unauthorized Request"));
+  if (!validateRole(request.user, ProfileType.OWNER)) {
+    throw new ServerApiError("Missing owner role", 401);
   }
   next();
 }
@@ -48,7 +47,7 @@ export interface ValidationSchemaType {
 }
 
 export function validateRequest(validationSchema: ValidationSchemaType) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     try {
       const errors = [];
       for (let k in validationSchema) {
@@ -83,9 +82,14 @@ export function validateRequest(validationSchema: ValidationSchemaType) {
 
 export function apiErrorHandler(
   error: ServerApiError,
-  req: Request,
+  _req: Request,
   res: Response,
-  next: NextFunction,
+  _next: NextFunction,
 ) {
-  res.status(error.status).json(apiJsonRseponse(false, null, error.message, error.error));
+  if (error.status === undefined) {
+    console.error("Unknown error thrown:", error);
+    res.status(500).json(apiJsonRseponse(false, null, "Internal Server Error"));
+  } else {
+    res.status(error.status).json(apiJsonRseponse(false, null, error.message, error.error));
+  }
 }

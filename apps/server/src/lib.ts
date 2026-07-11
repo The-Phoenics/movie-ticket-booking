@@ -12,6 +12,7 @@ export class ServerApiError extends Error {
   public error: any
 
   constructor(message: string, status: number, error: any = null) {
+    console.log("Server API err msg:", message)
     super(message);
     this.message = message;
     this.error = error = error

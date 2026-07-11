@@ -31,7 +31,11 @@ export async function addMovieToTheatreController(req: Request, res: Response, n
     }
 
     const theatreId = req.params.theatreId as string;
-    const tmdbMovieId = req.params.tmdbMovieId as string;
+    const tmdbMovieId = Number(req.body.tmdbMovieId);
+
+    if (!theatreId || !tmdbMovieId || isNaN(tmdbMovieId)) {
+      throw new ServerApiError("Invalid theatreId or invalid tmdb movie id", 400);
+    }
 
     const [tmdbMovie, theatreSeatsCount] = await Promise.all([
       tmdbGetMovieById(tmdbMovieId),
@@ -48,12 +52,30 @@ export async function addMovieToTheatreController(req: Request, res: Response, n
       throw new ServerApiError("Invalid tmdb movie id or movie already exist in this theatre", 401);
     }
 
+    const createUpdateMovieObject = {
+      tmdbMovieId: tmdbMovie.id,
+      title: tmdbMovie.title,
+      overview: tmdbMovie.overview,
+      adult: tmdbMovie.adult,
+      original_language: tmdbMovie.original_language,
+      release_date: new Date(tmdbMovie.release_date),
+      popularity: tmdbMovie.popularity,
+      status: tmdbMovie.status,
+      tagline: tmdbMovie.tagline,
+      img: tmdbMovie.img,
+      genres: tmdbMovie.genres,
+    };
+
     const createdMovie = await prisma.movie.upsert({
-      create: { tmdbMovieId: tmdbMovieId, ...tmdbMovie },
       where: {
         tmdbMovieId: tmdbMovieId,
       },
-      update: { ...tmdbMovie },
+      create: {
+        ...createUpdateMovieObject,
+      },
+      update: {
+        ...createUpdateMovieObject,
+      },
     });
 
     const startTime = new Date(req.body.startTime);
@@ -79,6 +101,7 @@ export async function addMovieToTheatreController(req: Request, res: Response, n
       .status(201)
       .json(apiJsonRseponse(true, { theatreMovie }, "Successfully added movie to theatre", null));
   } catch (err) {
+    console.log("errrrr", err);
     next(err);
   }
 }
