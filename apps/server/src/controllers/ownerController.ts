@@ -1,6 +1,7 @@
 import { ServerApiError } from "@/lib";
-import { createTheatre, theatreNumOfSeats, addMovieToTheatre } from "@/services/businessService";
+import { createTheatre, theatreNumOfSeats, addMovieToTheatre } from "@/services/ownerService";
 import { getShows } from "@/services/movieService";
+import { tmdbGetMovieById } from "@/services/tmdbMovieService";
 import { apiJsonRseponse, isValidDateInstance } from "@/utils";
 import prisma from "@movie-ticket-booking/db";
 import type { NextFunction, Request, Response } from "express";
@@ -30,11 +31,11 @@ export async function addMovieToTheatreController(req: Request, res: Response, n
     }
 
     const theatreId = req.params.theatreId as string;
-    const movieId = req.params.movieId as string;
+    const tmdbMovieId = req.params.tmdbMovieId as string;
 
-    const [theatreSeatsCount, movie] = await Promise.all([
+    const [tmdbMovie, theatreSeatsCount] = await Promise.all([
+      tmdbGetMovieById(tmdbMovieId),
       theatreNumOfSeats(theatreId),
-      prisma.movie.findUnique({ where: { id: movieId } }),
     ]);
 
     // check min seats in theatre
@@ -42,8 +43,18 @@ export async function addMovieToTheatreController(req: Request, res: Response, n
       throw new ServerApiError("Add seats to theatre before adding movies", 401);
     }
 
-    // check if movie exists
-    if (!movie) throw new ServerApiError(`Invalid movie. Movie not found with id: ${movieId}`, 404);
+    // check that the movies doesn't already exist
+    if (!tmdbMovie) {
+      throw new ServerApiError("Invalid tmdb movie id or movie already exist in this theatre", 401);
+    }
+
+    const createdMovie = await prisma.movie.upsert({
+      create: { tmdbMovieId: tmdbMovieId, ...tmdbMovie },
+      where: {
+        tmdbMovieId: tmdbMovieId,
+      },
+      update: { ...tmdbMovie },
+    });
 
     const startTime = new Date(req.body.startTime);
     const endTime = new Date(req.body.endTime);
@@ -57,7 +68,13 @@ export async function addMovieToTheatreController(req: Request, res: Response, n
     }
 
     // add movie to theatre
-    const theatreMovie = await addMovieToTheatre(theatreId, movieId, startTime, endTime, price);
+    const theatreMovie = await addMovieToTheatre(
+      theatreId,
+      createdMovie.id,
+      startTime,
+      endTime,
+      price,
+    );
     res
       .status(201)
       .json(apiJsonRseponse(true, { theatreMovie }, "Successfully added movie to theatre", null));

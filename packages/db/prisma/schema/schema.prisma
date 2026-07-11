@@ -105,14 +105,19 @@ model Theatre {
 }
 
 model Movie {
-  id            String      @id @default(cuid())
-  movieId       String      @unique
-  title         String
-  description   String
-  rating        Int
-  crew          Json        @default("{}")
-  tags          MOVIE_TAG[]
-  theatreMovies Show[]
+  id                String   @id @default(cuid())
+  tmdbMovieId       String   @unique // tmdb movie id
+  title             String
+  overview          String
+  adult             Boolean
+  original_language String
+  release_date      DateTime
+  popularity        Int
+  status            String
+  tagline           String
+  img               String
+  genres            Json
+  theatreMovies     Show[]
 }
 
 model Show {

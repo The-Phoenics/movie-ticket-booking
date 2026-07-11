@@ -5,7 +5,7 @@ dotenv.config({ path: path.join(__dirname, "../.env") });
 
 import prisma from "@movie-ticket-booking/db";
 import { auth } from "@movie-ticket-booking/auth";
-import { createTheatre, addMovieToTheatre } from "./services/businessService";
+import { createTheatre, addMovieToTheatre } from "./services/ownerService";
 import { createSeatsBulk } from "./services/seatService";
 import { createMovie } from "./services/movieService";
 import { ProfileType } from "@movie-ticket-booking/shared/types";

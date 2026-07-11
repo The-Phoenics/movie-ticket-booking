@@ -46,7 +46,7 @@ const AddMovieToTheatre: ValidationSchemaType = {
   }),
   params: z.object({
     theatreId: z.string().min(1),
-    movieId: z.string().min(1),
+    tmdbMovieId: z.string().min(1),
   }),
 };
 
