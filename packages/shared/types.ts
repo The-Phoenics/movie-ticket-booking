@@ -24,3 +24,38 @@ export type SendTicketJobDataType = {
   orderId: string;
   showSeatId: string;
 };
+
+// tmdb types
+export interface TMDBMovieSearchFilter {
+  searchString: string;
+  adult: boolean;
+  page: number;
+}
+
+export interface TMDBMovieType {
+  id: string;
+  title: string;
+  overview: string;
+  adult: boolean;
+  original_language: string;
+  release_date: Date;
+  popularity: number;
+  status: string;
+  tagline: string;
+  genres: {
+    id: number;
+    name: string;
+  }[];
+  img: string;
+}
+
+export interface TMDBMoviesType {
+  id: string;
+  original_title: string;
+  overview: string;
+  adult: boolean;
+  original_language: string;
+  release_date: Date;
+  popularity: number;
+  img: string;
+}

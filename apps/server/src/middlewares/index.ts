@@ -35,7 +35,7 @@ export function validateCustomerRequestRole(req: Request, res: Response, next: N
 export function validateBusinessRequestRole(req: Request, res: Response, next: NextFunction) {
   const request = req as AuthenticatedRequest;
   const user = request.user;
-  if (!user.role || user.role !== ProfileType.BUSINESS) {
+  if (!user.role || user.role !== ProfileType.OWNER) {
     return res.json(apiJsonRseponse(false, null, "Unauthorized Request"));
   }
   next();

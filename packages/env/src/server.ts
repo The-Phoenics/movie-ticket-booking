@@ -13,6 +13,8 @@ export const env = createEnv({
     STRIPE_SECRET_KEY: z.string(),
     STRIPE_WEBHOOK_SECRET: z.string(),
     RESEND_API_KEY: z.string(),
+    TMDB_API_KEY: z.string(),
+    TMDB_READ_ACCESS_TOKEN: z.string(),
   },
   runtimeEnv: process.env,
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

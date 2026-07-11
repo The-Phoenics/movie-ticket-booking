@@ -2,7 +2,7 @@ import prisma from "@movie-ticket-booking/db";
 import type { SendTicketJobDataType } from "@movie-ticket-booking/shared/types";
 import type { Job } from "bullmq";
 import { sendTicketMail } from "./lib";
-import genTicketPdf, { type TicketData } from "./lib/puppeteer";
+import genTicketPdf, { type TicketData } from "./lib/pdfkit";
 
 async function sendTicketProcessor(job: Job<SendTicketJobDataType>) {
   try {
@@ -71,8 +71,6 @@ async function sendTicketProcessor(job: Job<SendTicketJobDataType>) {
 
     const ticket = await genTicketPdf(ticketData);
     await sendTicketMail([userEmail], ticket);
-
-    console.log("Processed payment and sent ticket:");
   } catch (err) {
     console.log("WORKER: Failed to send ticket email:", err);
   }

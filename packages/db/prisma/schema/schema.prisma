@@ -106,6 +106,7 @@ model Theatre {
 
 model Movie {
   id            String      @id @default(cuid())
+  movieId       String      @unique
   title         String
   description   String
   rating        Int
