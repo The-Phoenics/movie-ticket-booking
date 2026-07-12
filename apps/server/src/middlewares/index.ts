@@ -50,7 +50,7 @@ export function validateRequest(validationSchema: ValidationSchemaType) {
   return (req: Request, _res: Response, next: NextFunction) => {
     try {
       const errors = [];
-      for (let k in validationSchema) {
+      for (const k in validationSchema) {
         const key = k as "params" | "body" | "query";
         const schema = validationSchema[key];
         if (schema) {

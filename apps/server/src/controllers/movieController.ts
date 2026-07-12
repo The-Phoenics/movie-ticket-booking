@@ -152,7 +152,7 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
     }
 
     // call reserve seat service
-    const reservationSuccess = reserveTheatreMovieSeat(customer.id, showSeatId);
+    const reservationSuccess = await reserveTheatreMovieSeat(customer.id, showSeatId);
 
     // if seat couldn't be resesrved - gets reserved for another user -> return seat not available
     if (!reservationSuccess) {
@@ -210,7 +210,7 @@ export async function buyMovieSeatController(req: Request, res: Response, next: 
     if (!customer) {
       throw new ServerApiError("Unauthorized user making request to buy ticket", 402);
     }
-    const verified = verifySeatReservationForUser(customer.id, showSeatId);
+    const verified = await verifySeatReservationForUser(customer.id, showSeatId);
     if (!verified) {
       throw new ServerApiError("Seat is reserved for the user trying to buy the seat", 401);
     }

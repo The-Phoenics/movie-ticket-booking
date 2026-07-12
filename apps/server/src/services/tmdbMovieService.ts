@@ -18,7 +18,7 @@ export async function tmdbGetMovieById(id: number) {
     };
 
     const res = await fetch(url, options);
-    let movie = (await res.json()) as unknown as TMDBMovieType & { backdrop_path: string };
+    const movie = (await res.json()) as unknown as TMDBMovieType & { backdrop_path: string };
     // movie = movie as unknown as TMDBMovieType & { backdrop_path: string };
     const basePath = "https://image.tmdb.org/t/p/";
     const size = "w780"; // options: w300, w780, w1280, original
