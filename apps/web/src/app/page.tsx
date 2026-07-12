@@ -11,7 +11,7 @@ export default function HomePage() {
       {/* ── Nav ── */}
       <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-7">
         <span className="[font-family:var(--display,'Fraunces',serif)] text-xl font-semibold tracking-tight">
-          Reel<span className="text-red-600">.</span>
+          Mtb<span className="text-red-600">.</span>
         </span>
         <Link
           href={("/movies") as Route}
@@ -31,7 +31,7 @@ export default function HomePage() {
         </h1>
 
         <p className="mb-9 text-[1.0625rem] leading-relaxed text-white/50">
-          Reel is where all cinephiles books its cinema — every showtime, every screen,
+          Mtb is where all cinephiles books its cinema — every showtime, every screen,
           held the moment you tap it.
         </p>
 

@@ -27,7 +27,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Reel — Boutique Cinema Booking",
+  title: "Mtb — Boutique Cinema Booking",
   description: "Browse what's playing, hold your seats, and walk in with the ticket in hand.",
 };
 

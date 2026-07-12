@@ -132,7 +132,7 @@ export default function MoviesPage() {
               href="/"
               className="[font-family:var(--display,'Fraunces',serif)] text-2xl font-semibold text-[#fafafa] no-underline tracking-[-0.02em] whitespace-nowrap"
             >
-              Reel<span className="text-[#dc2626]">.</span>
+              Mtb<span className="text-[#dc2626]">.</span>
             </Link>
             <nav className="flex gap-0 sm:gap-1">
               <a className="px-2.5 sm:px-3.5 py-[0.4rem] rounded-full text-[0.8125rem] sm:text-sm cursor-pointer transition-colors duration-150 no-underline text-[#fafafa] bg-[#dc2626]/15">

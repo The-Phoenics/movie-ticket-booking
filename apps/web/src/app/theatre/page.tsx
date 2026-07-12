@@ -384,7 +384,7 @@ export default function TheatreDashboardPage() {
 
         <div className="relative container mx-auto flex items-center justify-between px-6 py-6">
           <span className="text-xl font-semibold tracking-tight">
-            Reel<span className="text-red-600">.</span>
+            Mtb<span className="text-red-600">.</span>
           </span>
           <UserMenu />
         </div>

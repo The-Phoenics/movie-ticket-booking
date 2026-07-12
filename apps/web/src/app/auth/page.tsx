@@ -92,7 +92,7 @@ export default function AuthPage() {
           <Film className="h-5 w-5" />
         </span>
         <span className="font-fraunces text-xl font-semibold tracking-tight">
-          Reel<span className="text-red-500">.</span>
+          Mtb<span className="text-red-500">.</span>
         </span>
       </Link>
 
@@ -132,7 +132,7 @@ export default function AuthPage() {
             <p className="mt-1 text-sm text-zinc-500">
               {mode === "signin"
                 ? "Sign in to book your seats and manage your tickets."
-                : "Join Reel to start booking movie tickets in seconds."}
+                : "Join Mtb to start booking movie tickets in seconds."}
             </p>
           </div>
 

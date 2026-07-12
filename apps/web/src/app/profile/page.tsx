@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { Route } from "next";
+import { ProfileType } from "../../../../../packages/db/prisma/generated/enums";
 
 interface CustomerProfile {
   id: string;
@@ -334,7 +335,7 @@ export default function ProfilePage() {
   if (!profile) return null;
 
   const { user } = profile;
-  const isCustomer = user.role === "CUSTOMER";
+  const isCustomer = user.role === ProfileType.CUSTOMER;
   const initials = (user.name ?? user.email)
     .split(" ")
     .map((w) => w[0])
@@ -355,7 +356,7 @@ export default function ProfilePage() {
           <Link href="/" className="flex items-center gap-2 group">
             <Film className="h-5 w-5 text-red-500" />
             <span className="font-semibold tracking-tight text-zinc-100">
-              Reel<span className="text-red-500">.</span>
+              Mtb<span className="text-red-500">.</span>
             </span>
           </Link>
           <Link

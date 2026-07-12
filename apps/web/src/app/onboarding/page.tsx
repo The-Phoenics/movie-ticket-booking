@@ -24,7 +24,7 @@ function RolePicker({ onSelect }: { onSelect: (role: Role) => void }) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-zinc-400 text-center mb-6">
-        How are you planning to use Reel?
+        How are you planning to use Mtb?
       </p>
 
       <button
