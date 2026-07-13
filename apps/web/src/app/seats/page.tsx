@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
@@ -33,10 +33,12 @@ export async function getTheatreSeatLayout(theatreId: string): Promise<TheatreSe
   return data.data.theatreSeats;
 }
 
-export async function updateTheatreSeatLayout(theatreId: string) {
+export async function updateTheatreSeatLayout(theatreId: string, seats: TheatreSeat[]) {
   const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/owner/${theatreId}/seats`, {
     method: "POST",
     credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ seats }),
   });
 
   if (!res.ok) {
@@ -61,10 +63,38 @@ export function useSeats(theatreId?: string) {
   });
 }
 
+/** Spreadsheet-style row naming: A, B, ... Z, AA, AB, ... */
+function nextRowLabel(rows: string[]): string {
+  if (rows.length === 0) return "A";
+  const last = rows[rows.length - 1];
+  const chars = last.split("");
+  let i = chars.length - 1;
+  while (i >= 0) {
+    if (chars[i] === "Z") {
+      chars[i] = "A";
+      i--;
+    } else {
+      chars[i] = String.fromCharCode(chars[i].charCodeAt(0) + 1);
+      return chars.join("");
+    }
+  }
+  return "A" + chars.join("");
+}
+
+function seatKey(row: string, col: number) {
+  return `${row}::${col}`;
+}
+
 function ManageSeatsPage() {
   const session = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  // Locally-editable layout state, seeded from the server data.
+  const [rows, setRows] = useState<string[]>([]);
+  const [maxCols, setMaxCols] = useState(0);
+  const [seatSet, setSeatSet] = useState<Set<string>>(new Set());
+  const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
     if (!session) {
@@ -72,107 +102,324 @@ function ManageSeatsPage() {
     }
   }, [session, router]);
 
-  const theatreQuery = useTheatre();
+  const theatreQuery = useQuery({
+    queryKey: ["theatre"],
+    queryFn: getTheatreDetails,
+    enabled: !!session,
+  });
   const seatsQuery = useSeats(theatreQuery.data?.id);
 
-  const updateSeatsMutation = useMutation({
-    mutationFn: updateTheatreSeatLayout,
+  // Reset local edits whenever fresh server data arrives (initial load, or after a save).
+  useEffect(() => {
+    if (!seatsQuery.data) return;
+    const rowLabels = Array.from(new Set(seatsQuery.data.map((s) => s.row))).sort();
+    const cols = seatsQuery.data.reduce((max, s) => Math.max(max, s.col), 0);
+    setRows(rowLabels);
+    setMaxCols(cols);
+    setSeatSet(new Set(seatsQuery.data.map((s) => seatKey(s.row, s.col))));
+    setIsDirty(false);
+  }, [seatsQuery.data]);
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["theatre-seats"],
+  const updateSeatsMutation = useMutation({
+    mutationFn: () => {
+      const seats: TheatreSeat[] = Array.from(seatSet).map((key) => {
+        const [row, col] = key.split("::");
+        return { row, col: Number(col) };
       });
+      return updateTheatreSeatLayout(theatreQuery.data!.id, seats);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["theatre-seats"] });
     },
   });
 
+  function toggleSeat(row: string, col: number) {
+    setSeatSet((prev) => {
+      const next = new Set(prev);
+      const key = seatKey(row, col);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+    setIsDirty(true);
+  }
+
+  function addRow() {
+    const label = nextRowLabel(rows);
+    setRows((prev) => [...prev, label]);
+    if (maxCols > 0) {
+      setSeatSet((prev) => {
+        const next = new Set(prev);
+        for (let c = 1; c <= maxCols; c++) next.add(seatKey(label, c));
+        return next;
+      });
+    }
+    setIsDirty(true);
+  }
+
+  function addColumn() {
+    const newCol = maxCols + 1;
+    setMaxCols(newCol);
+    if (rows.length > 0) {
+      setSeatSet((prev) => {
+        const next = new Set(prev);
+        for (const row of rows) next.add(seatKey(row, newCol));
+        return next;
+      });
+    }
+    setIsDirty(true);
+  }
+
+  function discardChanges() {
+    if (!seatsQuery.data) return;
+    const rowLabels = Array.from(new Set(seatsQuery.data.map((s) => s.row))).sort();
+    const cols = seatsQuery.data.reduce((max, s) => Math.max(max, s.col), 0);
+    setRows(rowLabels);
+    setMaxCols(cols);
+    setSeatSet(new Set(seatsQuery.data.map((s) => seatKey(s.row, s.col))));
+    setIsDirty(false);
+  }
+
+  if (!session) return null;
+
   if (theatreQuery.isPending) {
-    return <div>Loading theatre...</div>;
+    return (
+      <div className="grid min-h-screen place-items-center bg-[#09090b] text-sm text-zinc-500">
+        Loading theatre…
+      </div>
+    );
   }
 
   if (theatreQuery.isError) {
-    return <div>{theatreQuery.error.message}</div>;
+    return (
+      <div className="grid min-h-screen place-items-center bg-[#09090b] px-6">
+        <div className="max-w-sm text-center">
+          <p className="text-sm font-medium text-red-400">Couldn't load your theatre</p>
+          <p className="mt-1 text-sm text-zinc-500">{theatreQuery.error.message}</p>
+        </div>
+      </div>
+    );
   }
 
-  return (
-    <div className="relative overflow-hidden pb-8 min-h-screen bg-[#09090b] text-[#fafafa] [font-family:var(--body,'Archivo',sans-serif)]">
-      <div className="absolute -z-1 inset-0 bg-[linear-gradient(160deg,#18181b_0%,#09090b_60%,#0a0a12_100%)]" />
-      <div className="absolute -z-1 -top-30 left-1/2 -translate-x-1/2 w-175 h-100 bg-[radial-gradient(ellipse,rgba(220,38,38,0.18)_0%,transparent_70%)] pointer-events-none" />
-      <TheatreDetailsComponent theatre={theatreQuery.data} />
+  const totalSeats = seatSet.size;
+  const totalRows = rows.length;
 
-      <div className="w-full py-4 pt-8">
-        {/* Screen indicator */}
-        <div className="w-full flex justify-center items-center mb-4">
-          <div className="flex w-full max-w-2xl flex-col justify-center items-center gap-2">
-            <div className="h-1.5 w-full rounded-full bg-linear-to-r from-transparent via-red-600/70 to-transparent shadow-[0_0_24px_4px_rgba(220,38,38,0.35)]" />
-            <span className="text-xs font-medium uppercase tracking-[0.3em] text-zinc-500">
-              screen
-            </span>
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-[#09090b] pb-28 text-[#fafafa] [font-family:var(--body,'Archivo',sans-serif)]">
+      <div className="absolute -z-10 inset-0 bg-[linear-gradient(160deg,#18181b_0%,#09090b_60%,#0a0a12_100%)]" />
+      <div className="absolute -z-10 -top-30 left-1/2 -translate-x-1/2 w-175 h-100 bg-[radial-gradient(ellipse,rgba(220,38,38,0.16)_0%,transparent_70%)] pointer-events-none" />
+
+      <TheatreDetailsComponent
+        theatre={theatreQuery.data}
+        totalSeats={totalSeats}
+        totalRows={totalRows}
+      />
+
+      <div className="w-full px-4 py-6">
+        <Screen />
+
+        <div className="mt-8 flex flex-col items-center gap-4">
+          <Legend />
+          <Toolbar onAddRow={addRow} onAddColumn={addColumn} />
+        </div>
+
+        <div className="mt-6">
+          {seatsQuery.isPending && (
+            <p className="text-center text-sm text-zinc-500">Loading seats…</p>
+          )}
+          {seatsQuery.isError && (
+            <p className="text-center text-sm text-red-400">
+              Couldn't load the seat layout. {seatsQuery.error.message}
+            </p>
+          )}
+          {seatsQuery.isSuccess && (
+            <SeatsComponent rows={rows} maxCols={maxCols} seatSet={seatSet} onToggle={toggleSeat} />
+          )}
+        </div>
+      </div>
+
+      {isDirty && (
+        <div className="fixed inset-x-0 bottom-0 z-10 border-t border-zinc-800 bg-[#0a0a0c]/90 backdrop-blur supports-backdrop-blur:bg-[#0a0a0c]/70">
+          <div className="mx-auto flex max-w-2xl items-center justify-between gap-4 px-4 py-3">
+            <span className="text-sm text-zinc-400">Unsaved layout changes</span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={discardChanges}
+                className="rounded-md px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-200"
+              >
+                Discard
+              </button>
+              <button
+                type="button"
+                disabled={updateSeatsMutation.isPending}
+                onClick={() => updateSeatsMutation.mutate()}
+                className="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-500 disabled:opacity-50"
+              >
+                {updateSeatsMutation.isPending ? "Saving…" : "Save layout"}
+              </button>
+            </div>
           </div>
         </div>
-        {seatsQuery.isPending && <p>Loading seats...</p>}
-        {seatsQuery.isError ? (
-          <div>Failed to fetch seats</div>
-        ) : (
-          seatsQuery.data && <SeatsComponent seats={seatsQuery.data} />
-        )}
+      )}
+    </div>
+  );
+}
+
+function TheatreDetailsComponent({
+  theatre,
+  totalSeats,
+  totalRows,
+}: {
+  theatre: Theatre;
+  totalSeats: number;
+  totalRows: number;
+}) {
+  return (
+    <div className="border-b border-zinc-800/80 px-4 py-8">
+      <div className="mx-auto max-w-2xl">
+        <span className="text-[11px] font-medium uppercase tracking-[0.3em] text-red-500/80">
+          Manage seats
+        </span>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-50">{theatre.title}</h1>
+        {theatre.address && <p className="mt-1 text-sm text-zinc-500">{theatre.country}</p>}
+        <div className="mt-5 flex gap-6 text-sm">
+          <div>
+            <span className="block text-lg font-semibold text-zinc-100">{totalRows}</span>
+            <span className="text-xs uppercase tracking-wide text-zinc-500">rows</span>
+          </div>
+          <div>
+            <span className="block text-lg font-semibold text-zinc-100">{totalSeats}</span>
+            <span className="text-xs uppercase tracking-wide text-zinc-500">seats</span>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function TheatreDetailsComponent({ theatre }: { theatre: Theatre }) {
-  console.log(theatre);
-  return <div className="w-full border h-52">Theatre Details</div>;
+function Screen() {
+  return (
+    <div className="mx-auto flex max-w-2xl flex-col items-center gap-2">
+      <svg viewBox="0 0 600 60" className="h-10 w-full max-w-md" aria-hidden="true">
+        <path
+          d="M 10 10 Q 300 55 590 10"
+          fill="none"
+          stroke="url(#screenGradient)"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+        <defs>
+          <linearGradient id="screenGradient" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="transparent" />
+            <stop offset="50%" stopColor="#dc2626" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="transparent" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <span className="text-xs font-medium uppercase tracking-[0.3em] text-zinc-500">screen</span>
+    </div>
+  );
 }
 
-function SeatsComponent({ seats }: { seats: TheatreSeat[] }) {
-  const rows = useMemo(() => {
-    const grouped = new Map<string, TheatreSeat[]>();
-    for (const seat of seats) {
-      const rowKey = seat.row;
-      if (!grouped.has(rowKey)) grouped.set(rowKey, []);
-      grouped.get(rowKey)!.push(seat);
-    }
-    return Array.from(grouped.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([row, rowSeats]) => ({
-        row,
-        seats: rowSeats.sort((a, b) => a.col - b.col),
-      }));
-  }, [seats]);
+function Legend() {
+  const items = [
+    { label: "Available", className: "border border-zinc-700" },
+    { label: "Unavailable", className: "border border-dashed border-zinc-700" },
+  ];
+  return (
+    <div className="flex items-center gap-5 text-xs text-zinc-400">
+      {items.map(({ label, className }) => (
+        <div key={label} className="flex items-center gap-2">
+          <span className={cn("h-3.5 w-3.5 rounded-sm", className)} />
+          {label}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Toolbar({ onAddRow, onAddColumn }: { onAddRow: () => void; onAddColumn: () => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={onAddRow}
+        className="rounded-md hover:cursor-pointer border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+      >
+        + Add row
+      </button>
+      <button
+        type="button"
+        onClick={onAddColumn}
+        className="rounded-md hover:cursor-pointer border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+      >
+        + Add column
+      </button>
+    </div>
+  );
+}
+
+function SeatsComponent({
+  rows,
+  maxCols,
+  seatSet,
+  onToggle,
+}: {
+  rows: string[];
+  maxCols: number;
+  seatSet: Set<string>;
+  onToggle: (row: string, col: number) => void;
+}) {
+  if (rows.length === 0 || maxCols === 0) {
+    return (
+      <div className="mx-auto max-w-sm py-16 text-center">
+        <p className="text-sm font-medium text-zinc-300">No layout yet</p>
+        <p className="mt-1 text-sm text-zinc-500">
+          Add a row and a column above to start building the seat map.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full h-full flex justify-center items-center">
-      {/* Grid */}
-      <div className="md:w-1/2 w-full flex flex-col gap-2.5v justify-center items-center pt-8 pb-5">
-        {rows.length == 0 && <i className="text-sm text-gray-600">{"No seats available."}</i>}
-        {rows.map(({ row, seats: rowSeats }) => (
-          <div key={row} className="flex items-center justify-between gap-3 mb-3 w-full">
-            <span className="w-4 text-center text-xs font-semibold text-zinc-500">{row}</span>
-            <div className="flex gap-2">
-              {Array.from({ length: rowSeats.length }).map((_, idx) => {
-                const seat = rowSeats.find((seat) => seat.col === idx + 1);
-                return (
-                  <button
-                    key={`${row}-${idx + 1}`}
-                    type="button"
-                    aria-label={`Seat ${row}${idx + 1}`}
-                    onClick={() => {}}
-                    className={cn(
-                      "flex justify-center items-center h-8 w-8 rounded-md inset-shadow-white tracking-widest text-xl hover:shadow-xs hover:shadow-[#9f9f9f] transition-colors duration-150 ease-in border text-[10px] font-medium",
-                      "focus-visible:outline-none focus-visible:ring-2 hover:cursor-pointer focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
-                      seat === undefined && "invisible",
-                    )}
-                  >
-                    {seat && (seat.col >= 10 ? String(seat.col) : "0" + String(seat.col))}
-                  </button>
-                );
-              })}
-            </div>
-            <div />
+    <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-2.5 pt-4 pb-8">
+      {rows.map((row) => (
+        <div key={row} className="flex w-full items-center justify-between gap-3">
+          <span className="w-4 shrink-0 text-center text-xs font-semibold text-zinc-500">
+            {row}
+          </span>
+          <div className="flex flex-wrap justify-center gap-2">
+            {Array.from({ length: maxCols }).map((_, idx) => {
+              const col = idx + 1;
+              const exists = seatSet.has(seatKey(row, col));
+              return (
+                <button
+                  key={seatKey(row, col)}
+                  type="button"
+                  aria-label={
+                    exists
+                      ? `Seat ${row}${col}, available. Click to remove.`
+                      : `Empty slot ${row}${col}, unavailable. Click to add.`
+                  }
+                  aria-pressed={exists}
+                  onClick={() => onToggle(row, col)}
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-md text-[10px] font-medium tracking-widest transition-colors duration-150 ease-in hover:cursor-pointer",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
+                    exists
+                      ? "border border-zinc-700 text-zinc-300 hover:border-red-500 hover:text-red-400"
+                      : "border border-dashed border-zinc-800 text-zinc-700 hover:border-zinc-600 hover:text-zinc-500",
+                  )}
+                >
+                  {exists ? (col >= 10 ? String(col) : "0" + String(col)) : ""}
+                </button>
+              );
+            })}
           </div>
-        ))}
-      </div>
+          <span className="w-4 shrink-0" />
+        </div>
+      ))}
     </div>
   );
 }
