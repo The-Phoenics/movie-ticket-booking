@@ -1,10 +1,7 @@
 import { ServerApiError } from "@/lib";
 import prisma from "@movie-ticket-booking/db";
 import type { BatchPayload } from "@movie-ticket-booking/shared/types";
-import {
-  SEAT_STATUS,
-  type ShowSeat,
-} from "@movie-ticket-booking/shared/types";
+import { SEAT_STATUS, type ShowSeat } from "@movie-ticket-booking/shared/types";
 import { SEAT_RESERVATION_DURATION } from "@movie-ticket-booking/shared/constants";
 
 type Seat = {
@@ -32,11 +29,7 @@ export async function createSeatsBulk(seats: Seat[], theatreId: string) {
   return createdSeats;
 }
 
-export async function deleteSeatsBulk(
-  seats: Seat[],
-  theatreId: string,
-): Promise<BatchPayload> {
-  let deletedSeats = null;
+export async function deleteSeatsBulk(seats: Seat[], theatreId: string): Promise<BatchPayload> {
   try {
     const rows: string[] = [];
     const cols: number[] = [];
@@ -45,7 +38,7 @@ export async function deleteSeatsBulk(
       cols.push(seat.col);
     });
 
-    deletedSeats = await prisma.seat.deleteMany({
+    let deletedSeats = await prisma.seat.deleteMany({
       where: {
         theatreId: theatreId,
         row: {
@@ -56,10 +49,11 @@ export async function deleteSeatsBulk(
         },
       },
     });
+    return deletedSeats;
   } catch (err) {
+    console.log(err);
     throw new ServerApiError("DB error: Failed to delete bulk seats", 500);
   }
-  return deletedSeats;
 }
 
 export async function reserveTheatreMovieSeat(
@@ -107,10 +101,7 @@ export async function reserveTheatreMovieSeat(
   }
 }
 
-export async function verifySeatReservationForUser(
-  customerId: string,
-  showSeatId: string,
-) {
+export async function verifySeatReservationForUser(customerId: string, showSeatId: string) {
   const reservedSeats = await prisma.showSeatReservation.findMany({
     where: {
       showSeatId: showSeatId,
@@ -123,9 +114,7 @@ export async function verifySeatReservationForUser(
   if (!reservedSeats) return false;
   const firstReservation = reservedSeats[0];
   const reservedTime = new Date(firstReservation!.reservedAt);
-  const expirationTimeStamp = new Date(
-    reservedTime.getMinutes() + firstReservation!.duration,
-  );
+  const expirationTimeStamp = new Date(reservedTime.getMinutes() + firstReservation!.duration);
   const currTimeStamp = new Date();
   if (expirationTimeStamp < currTimeStamp) {
     return false;

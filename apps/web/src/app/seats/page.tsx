@@ -20,9 +20,12 @@ export async function getTheatreDetails(): Promise<Theatre> {
   return data.data.userProfile.theatre;
 }
 
-type TheatreSeat = Pick<Seat, "row" | "col">;
+type SeatStatus = "available" | "unavailable";
+type TheatreSeat = Pick<Seat, "row" | "col"> & { status: SeatStatus };
 
-export async function getTheatreSeatLayout(theatreId: string): Promise<TheatreSeat[]> {
+export async function getTheatreSeatLayout(
+  theatreId: string,
+): Promise<Pick<Seat, "row" | "col">[]> {
   const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/owner/${theatreId}/seats`, {
     credentials: "include",
   });
@@ -35,7 +38,7 @@ export async function getTheatreSeatLayout(theatreId: string): Promise<TheatreSe
 
 export async function updateTheatreSeatLayout(theatreId: string, seats: TheatreSeat[]) {
   const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/owner/${theatreId}/seats`, {
-    method: "POST",
+    method: "PATCH",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ seats }),
@@ -93,7 +96,7 @@ function ManageSeatsPage() {
   // Locally-editable layout state, seeded from the server data.
   const [rows, setRows] = useState<string[]>([]);
   const [maxCols, setMaxCols] = useState(0);
-  const [seatSet, setSeatSet] = useState<Set<string>>(new Set());
+  const [seatStatus, setSeatStatus] = useState<Map<string, SeatStatus>>(new Map());
   const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
@@ -109,22 +112,34 @@ function ManageSeatsPage() {
   });
   const seatsQuery = useSeats(theatreQuery.data?.id);
 
-  // Reset local edits whenever fresh server data arrives (initial load, or after a save).
+  // Build the full grid (rows x cols) from the seats the API returned, filling
+  // any gap in between with "unavailable". Runs on initial load and again after
+  // a successful save invalidates the query.
   useEffect(() => {
     if (!seatsQuery.data) return;
     const rowLabels = Array.from(new Set(seatsQuery.data.map((s) => s.row))).sort();
     const cols = seatsQuery.data.reduce((max, s) => Math.max(max, s.col), 0);
+    const present = new Set(seatsQuery.data.map((s) => seatKey(s.row, s.col)));
+
+    const status = new Map<string, SeatStatus>();
+    for (const row of rowLabels) {
+      for (let col = 1; col <= cols; col++) {
+        const key = seatKey(row, col);
+        status.set(key, present.has(key) ? "available" : "unavailable");
+      }
+    }
+
     setRows(rowLabels);
     setMaxCols(cols);
-    setSeatSet(new Set(seatsQuery.data.map((s) => seatKey(s.row, s.col))));
+    setSeatStatus(status);
     setIsDirty(false);
   }, [seatsQuery.data]);
 
   const updateSeatsMutation = useMutation({
     mutationFn: () => {
-      const seats: TheatreSeat[] = Array.from(seatSet).map((key) => {
+      const seats: TheatreSeat[] = Array.from(seatStatus.entries()).map(([key, status]) => {
         const [row, col] = key.split("::");
-        return { row, col: Number(col) };
+        return { row, col: Number(col), status };
       });
       return updateTheatreSeatLayout(theatreQuery.data!.id, seats);
     },
@@ -134,11 +149,11 @@ function ManageSeatsPage() {
   });
 
   function toggleSeat(row: string, col: number) {
-    setSeatSet((prev) => {
-      const next = new Set(prev);
+    setSeatStatus((prev) => {
+      const next = new Map(prev);
       const key = seatKey(row, col);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
+      const current = next.get(key) ?? "unavailable";
+      next.set(key, current === "available" ? "unavailable" : "available");
       return next;
     });
     setIsDirty(true);
@@ -147,26 +162,22 @@ function ManageSeatsPage() {
   function addRow() {
     const label = nextRowLabel(rows);
     setRows((prev) => [...prev, label]);
-    if (maxCols > 0) {
-      setSeatSet((prev) => {
-        const next = new Set(prev);
-        for (let c = 1; c <= maxCols; c++) next.add(seatKey(label, c));
-        return next;
-      });
-    }
+    setSeatStatus((prev) => {
+      const next = new Map(prev);
+      for (let c = 1; c <= maxCols; c++) next.set(seatKey(label, c), "unavailable");
+      return next;
+    });
     setIsDirty(true);
   }
 
   function addColumn() {
     const newCol = maxCols + 1;
     setMaxCols(newCol);
-    if (rows.length > 0) {
-      setSeatSet((prev) => {
-        const next = new Set(prev);
-        for (const row of rows) next.add(seatKey(row, newCol));
-        return next;
-      });
-    }
+    setSeatStatus((prev) => {
+      const next = new Map(prev);
+      for (const row of rows) next.set(seatKey(row, newCol), "unavailable");
+      return next;
+    });
     setIsDirty(true);
   }
 
@@ -174,9 +185,19 @@ function ManageSeatsPage() {
     if (!seatsQuery.data) return;
     const rowLabels = Array.from(new Set(seatsQuery.data.map((s) => s.row))).sort();
     const cols = seatsQuery.data.reduce((max, s) => Math.max(max, s.col), 0);
+    const present = new Set(seatsQuery.data.map((s) => seatKey(s.row, s.col)));
+
+    const status = new Map<string, SeatStatus>();
+    for (const row of rowLabels) {
+      for (let col = 1; col <= cols; col++) {
+        const key = seatKey(row, col);
+        status.set(key, present.has(key) ? "available" : "unavailable");
+      }
+    }
+
     setRows(rowLabels);
     setMaxCols(cols);
-    setSeatSet(new Set(seatsQuery.data.map((s) => seatKey(s.row, s.col))));
+    setSeatStatus(status);
     setIsDirty(false);
   }
 
@@ -201,7 +222,7 @@ function ManageSeatsPage() {
     );
   }
 
-  const totalSeats = seatSet.size;
+  const totalSeats = Array.from(seatStatus.values()).filter((s) => s === "available").length;
   const totalRows = rows.length;
 
   return (
@@ -233,7 +254,12 @@ function ManageSeatsPage() {
             </p>
           )}
           {seatsQuery.isSuccess && (
-            <SeatsComponent rows={rows} maxCols={maxCols} seatSet={seatSet} onToggle={toggleSeat} />
+            <SeatsComponent
+              rows={rows}
+              maxCols={maxCols}
+              seatStatus={seatStatus}
+              onToggle={toggleSeat}
+            />
           )}
         </div>
       </div>
@@ -253,8 +279,10 @@ function ManageSeatsPage() {
               <button
                 type="button"
                 disabled={updateSeatsMutation.isPending}
-                onClick={() => updateSeatsMutation.mutate()}
-                className="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-500 disabled:opacity-50"
+                onClick={() => {
+                  updateSeatsMutation.mutate();
+                }}
+                className="rounded-md hover:cursor-pointer bg-red-600 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-500 disabled:opacity-50"
               >
                 {updateSeatsMutation.isPending ? "Saving…" : "Save layout"}
               </button>
@@ -290,7 +318,7 @@ function TheatreDetailsComponent({
           </div>
           <div>
             <span className="block text-lg font-semibold text-zinc-100">{totalSeats}</span>
-            <span className="text-xs uppercase tracking-wide text-zinc-500">seats</span>
+            <span className="text-xs uppercase tracking-wide text-zinc-500">available seats</span>
           </div>
         </div>
       </div>
@@ -363,12 +391,12 @@ function Toolbar({ onAddRow, onAddColumn }: { onAddRow: () => void; onAddColumn:
 function SeatsComponent({
   rows,
   maxCols,
-  seatSet,
+  seatStatus,
   onToggle,
 }: {
   rows: string[];
   maxCols: number;
-  seatSet: Set<string>;
+  seatStatus: Map<string, SeatStatus>;
   onToggle: (row: string, col: number) => void;
 }) {
   if (rows.length === 0 || maxCols === 0) {
@@ -385,34 +413,35 @@ function SeatsComponent({
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-2.5 pt-4 pb-8">
       {rows.map((row) => (
-        <div key={row} className="flex w-full items-center justify-between gap-3">
+        <div key={row} className="flex w-full items-center justify-center gap-3">
           <span className="w-4 shrink-0 text-center text-xs font-semibold text-zinc-500">
             {row}
           </span>
           <div className="flex flex-wrap justify-center gap-2">
             {Array.from({ length: maxCols }).map((_, idx) => {
               const col = idx + 1;
-              const exists = seatSet.has(seatKey(row, col));
+              const status = seatStatus.get(seatKey(row, col)) ?? "unavailable";
+              const isAvailable = status === "available";
               return (
                 <button
                   key={seatKey(row, col)}
                   type="button"
                   aria-label={
-                    exists
-                      ? `Seat ${row}${col}, available. Click to remove.`
-                      : `Empty slot ${row}${col}, unavailable. Click to add.`
+                    isAvailable
+                      ? `Seat ${row}${col}, available. Click to mark unavailable.`
+                      : `Slot ${row}${col}, unavailable. Click to mark available.`
                   }
-                  aria-pressed={exists}
+                  aria-pressed={isAvailable}
                   onClick={() => onToggle(row, col)}
                   className={cn(
                     "flex h-8 w-8 items-center justify-center rounded-md text-[10px] font-medium tracking-widest transition-colors duration-150 ease-in hover:cursor-pointer",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
-                    exists
+                    isAvailable
                       ? "border border-zinc-700 text-zinc-300 hover:border-red-500 hover:text-red-400"
                       : "border border-dashed border-zinc-800 text-zinc-700 hover:border-zinc-600 hover:text-zinc-500",
                   )}
                 >
-                  {exists ? (col >= 10 ? String(col) : "0" + String(col)) : ""}
+                  {col >= 10 ? String(col) : "0" + String(col)}
                 </button>
               );
             })}

@@ -10,6 +10,7 @@ import {
   createSeatsController,
   deleteSeatsController,
   getSeatsController,
+  udpateSeatLayoutController,
 } from "@/controllers/seatController";
 
 const ownerRouter: Router = express.Router();
@@ -29,6 +30,21 @@ const CreateSeatsRequestSchema: ValidationSchemaType = {
       z.object({
         row: z.string().min(1).max(1),
         col: z.number().min(1),
+      }),
+    ),
+  }),
+  params: z.object({
+    theatreId: z.string().min(1),
+  }),
+};
+
+const UpdateSeatsRequestSchema: ValidationSchemaType = {
+  body: z.object({
+    seats: z.array(
+      z.object({
+        row: z.string().min(1).max(1),
+        col: z.number().min(1),
+        status: z.enum(["available", "unavailable"]),
       }),
     ),
   }),
@@ -59,6 +75,13 @@ ownerRouter.post(
   "/:theatreId/seats",
   validateRequest(CreateSeatsRequestSchema),
   createSeatsController,
+);
+
+// update: delete and create seats for theatre in bulk
+ownerRouter.patch(
+  "/:theatreId/seats",
+  validateRequest(UpdateSeatsRequestSchema),
+  udpateSeatLayoutController,
 );
 
 // get seats for theatre
