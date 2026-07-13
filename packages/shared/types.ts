@@ -1,4 +1,8 @@
+// export prisma generated types
 export * from "../db/prisma/generated/client";
+export * from "../db/prisma/generated/enums";
+export * from "../db/prisma/generated/internal/prismaNamespace";
+
 import { type User } from "../db/prisma/generated/client";
 import { type Request } from "express";
 

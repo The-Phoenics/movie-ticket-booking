@@ -1,6 +1,6 @@
 import { ServerApiError } from "@/lib";
 import prisma from "@movie-ticket-booking/db";
-import type { BatchPayload } from "../../../../packages/db/prisma/generated/internal/prismaNamespace";
+import type { BatchPayload } from "@movie-ticket-booking/shared/types";
 import {
   SEAT_STATUS,
   type ShowSeat,
@@ -124,7 +124,7 @@ export async function verifySeatReservationForUser(
   const firstReservation = reservedSeats[0];
   const reservedTime = new Date(firstReservation!.reservedAt);
   const expirationTimeStamp = new Date(
-    reservedTime.getTime() + firstReservation!.duration,
+    reservedTime.getMinutes() + firstReservation!.duration,
   );
   const currTimeStamp = new Date();
   if (expirationTimeStamp < currTimeStamp) {

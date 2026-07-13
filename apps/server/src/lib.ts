@@ -15,8 +15,9 @@ export class ServerApiError extends Error {
     console.log("Server API err msg:", message)
     super(message);
     this.message = message;
-    this.error = error = error
+    this.error = error
     this.status = status;
+    console.log("Error stack: ", this.stack)
     console.log("Error: ", error)
   }
 }

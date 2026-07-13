@@ -39,6 +39,46 @@ export async function createSeatsController(req: Request, res: Response, next: N
   }
 }
 
+export async function getSeatsController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const user = req.user;
+    const theatreId = req.params.theatreId as string;
+    if (!user || !user.id || !theatreId) {
+      throw new ServerApiError("Invalid user session req.user not found", 401);
+    }
+
+    const theatre = await prisma.theatre.findUnique({
+      where: {
+        id: theatreId,
+        userId: user.id,
+      },
+      include: {
+        seat: true,
+      },
+    });
+    if (!theatre) {
+      throw new ServerApiError("Invalid theatre, theatreId not found", 401);
+    }
+
+    const theatreSeatsDto = {
+      theatreSeats: theatre.seat,
+    };
+
+    res
+      .status(201)
+      .json(
+        apiJsonRseponse(
+          true,
+          theatreSeatsDto,
+          `Successfully created seats for theatre: \"${theatre.title}\"`,
+          null,
+        ),
+      );
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function deleteSeatsController(req: Request, res: Response, next: NextFunction) {
   try {
     const user = req.user;

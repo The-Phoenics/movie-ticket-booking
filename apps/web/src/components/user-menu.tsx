@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LogOut, User, ChevronDown, Film } from "lucide-react";
+import { LogOut, User, ChevronDown, Film, ChartBarIcon, Armchair } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { useState, useRef, useEffect } from "react";
 import type { Route } from "next";
@@ -66,13 +66,13 @@ export default function UserMenu() {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="true"
-        className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800/60 px-2.5 py-1.5 text-sm transition hover:border-zinc-600 hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-red-500/30"
+        className="flex hover:cursor-pointer items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800/60 px-2.5 py-1.5 text-sm transition hover:border-zinc-600 hover:bg-zinc-800"
       >
         {/* Avatar */}
         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-red-600/20 text-xs font-bold text-red-400 select-none">
           {initials}
         </span>
-        <span className="max-w-[120px] truncate text-zinc-300 font-medium hidden sm:block">
+        <span className="max-w-30 truncate text-zinc-300 font-medium hidden sm:block">
           {displayName}
         </span>
         <ChevronDown
@@ -90,9 +90,7 @@ export default function UserMenu() {
                 {initials}
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-zinc-100 truncate">
-                  {displayName}
-                </p>
+                <p className="text-sm font-semibold text-zinc-100 truncate">{displayName}</p>
               </div>
             </div>
           </div>
@@ -114,6 +112,14 @@ export default function UserMenu() {
             >
               <Film className="h-4 w-4 text-zinc-500" />
               Browse Movies
+            </Link>
+            <Link
+              href={"/seats" as Route}
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-800 hover:text-zinc-100"
+            >
+              <Armchair className="h-4 w-4 text-zinc-500" />
+              Manage Seats
             </Link>
           </div>
 

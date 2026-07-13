@@ -123,11 +123,11 @@ export default function MoviesPage() {
       {/* ── Header / Hero ── */}
       <header className="relative overflow-hidden pb-8">
         <div className="absolute inset-0 bg-[linear-gradient(160deg,#18181b_0%,#09090b_60%,#0a0a12_100%)]" />
-        <div className="absolute -top-[120px] left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-[radial-gradient(ellipse,rgba(220,38,38,0.18)_0%,transparent_70%)] pointer-events-none" />
+        <div className="absolute -top-30 left-1/2 -translate-x-1/2 w-175 h-100 bg-[radial-gradient(ellipse,rgba(220,38,38,0.18)_0%,transparent_70%)] pointer-events-none" />
 
-        <div className="relative max-w-[1280px] mx-auto px-6">
+        <div className="relative max-w-7xl mx-auto px-6">
           {/* Brand row */}
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-4 sm:gap-10 pt-5 pb-8 border-b border-white/[0.06] mb-10">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-4 sm:gap-10 pt-5 pb-8 border-b border-white/6 mb-10">
             <Link
               href="/"
               className="[font-family:var(--display,'Fraunces',serif)] text-2xl font-semibold text-[#fafafa] no-underline tracking-[-0.02em] whitespace-nowrap"
@@ -141,9 +141,9 @@ export default function MoviesPage() {
               <a className="px-2.5 sm:px-3.5 py-[0.4rem] rounded-full text-[0.8125rem] sm:text-sm text-white/55 cursor-pointer transition-colors duration-150 no-underline hover:text-white/90 hover:bg-white/[0.06]">
                 Coming Soon
               </a>
-              <a className="px-2.5 sm:px-3.5 py-[0.4rem] rounded-full text-[0.8125rem] sm:text-sm text-white/55 cursor-pointer transition-colors duration-150 no-underline hover:text-white/90 hover:bg-white/[0.06]">
+              {/* <a className="px-2.5 sm:px-3.5 py-[0.4rem] rounded-full text-[0.8125rem] sm:text-sm text-white/55 cursor-pointer transition-colors duration-150 no-underline hover:text-white/90 hover:bg-white/[0.06]">
                 Events
-              </a>
+              </a> */}
             </nav>
             <div style={{ marginLeft: "auto" }}>
               <UserMenu />

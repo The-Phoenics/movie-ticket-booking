@@ -74,7 +74,7 @@ export function validateRequest(validationSchema: ValidationSchemaType) {
         });
       }
     } catch (err) {
-      next(err);
+      return next(err);
     }
     next();
   };

@@ -83,7 +83,7 @@ export default function AuthPage() {
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center px-4 py-12">
       {/* Background glow */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full bg-red-600/10 blur-3xl" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-150 h-100 rounded-full bg-red-600/10 blur-3xl" />
       </div>
 
       {/* Logo */}
@@ -99,7 +99,7 @@ export default function AuthPage() {
       {/* Card */}
       <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 shadow-2xl overflow-hidden">
         {/* Top accent line */}
-        <div className="h-1 bg-gradient-to-r from-red-700 via-red-500 to-orange-400" />
+        <div className="h-1 bg-linear-to-r from-red-700 via-red-500 to-orange-400" />
 
         <div className="px-8 py-8">
           {/* Tab switcher */}

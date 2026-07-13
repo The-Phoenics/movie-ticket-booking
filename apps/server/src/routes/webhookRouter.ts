@@ -41,7 +41,7 @@ webhookRouter.post("/stripe", async (req, res) => {
       break;
   }
   console.log("WEBHOOK:STRIPE:", event.type);
-  res.status(200);
+  res.sendStatus(200);
 });
 
 export default webhookRouter;

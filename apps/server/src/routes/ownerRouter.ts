@@ -6,7 +6,11 @@ import {
 } from "@/controllers/ownerController";
 import { validateRequest, type ValidationSchemaType } from "@/middlewares";
 import z from "zod";
-import { createSeatsController, deleteSeatsController } from "@/controllers/seatController";
+import {
+  createSeatsController,
+  deleteSeatsController,
+  getSeatsController,
+} from "@/controllers/seatController";
 
 const ownerRouter: Router = express.Router();
 
@@ -56,6 +60,9 @@ ownerRouter.post(
   validateRequest(CreateSeatsRequestSchema),
   createSeatsController,
 );
+
+// get seats for theatre
+ownerRouter.get("/:theatreId/seats", getSeatsController);
 
 // delete seats for theatre in bulk
 ownerRouter.delete(
