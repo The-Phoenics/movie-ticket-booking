@@ -11,14 +11,14 @@ export async function onboardingController(req: Request, res: Response) {
   }
 
   const { role } = req.body;
-  if (!role || (role !== ProfileType.OWNER && role !== ProfileType.CUSTOMER)) {
+  if (!role || (role !== "OWNER" && role !== "CUSTOMER")) {
     return res
       .status(400)
       .json(apiJsonRseponse(false, null, "Invalid role. Must be CUSTOMER or OWNER"));
   }
 
   try {
-    if (role === ProfileType.CUSTOMER) {
+    if (role === "CUSTOMER") {
       const { name } = req.body as { name?: string };
 
       if (!name || typeof name !== "string" || !name.trim()) {
@@ -33,7 +33,7 @@ export async function onboardingController(req: Request, res: Response) {
       return res.status(200).json(apiJsonRseponse(true, { customer }, "Onboarding complete"));
     }
 
-    if (role === ProfileType.OWNER) {
+    if (role === "OWNER") {
       const { title, address, city, country } = req.body as {
         title?: string;
         address?: string;

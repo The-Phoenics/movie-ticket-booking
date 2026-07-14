@@ -1,7 +1,7 @@
 import { ServerApiError } from "@/lib";
 import { getUserProfile, updateUserProfile } from "@/services/profileService";
 import { apiJsonRseponse } from "@/utils";
-import { ProfileType } from "@movie-ticket-booking/shared/types";
+import type { ProfileType } from "@movie-ticket-booking/shared/types";
 import type { Request, Response } from "express";
 import z from "zod";
 
@@ -43,13 +43,13 @@ export async function updateProfileController(req: Request, res: Response) {
   }
 
   // validate input body
-  if (user.role === ProfileType.CUSTOMER) {
+  if (user.role === "CUSTOMER") {
     var customervalidation = updateCustomerSchema.safeParse(req.body);
     if (!customervalidation.success) {
       throw new ServerApiError("Invalid update input", 400);
     }
   }
-  if (user.role === ProfileType.OWNER) {
+  if (user.role === "OWNER") {
     var ownervalidation = updateTheatreSchema.safeParse(req.body);
     if (!ownervalidation.success) {
       throw new ServerApiError("Invalid update input", 400);

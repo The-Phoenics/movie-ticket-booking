@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/components/auth-provider";
 import UserMenu from "@/components/user-menu";
+import { formatDateHeading, formatTime } from "@/lib/utils";
 import { env } from "@movie-ticket-booking/env/web";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -61,23 +62,6 @@ interface MoviesCatalogResponse {
   };
 }
 
-function formatDateHeading(iso: string) {
-  return new Date(iso).toLocaleDateString("en-IN", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("en-IN", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-}
-
 function groupShowsByDate(shows: ShowWithMovie[]) {
   const groups = new Map<string, ShowWithMovie[]>();
   for (const show of shows) {
@@ -89,7 +73,9 @@ function groupShowsByDate(shows: ShowWithMovie[]) {
     .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
     .map(([key, list]) => ({
       key,
-      shows: list.slice().sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()),
+      shows: list
+        .slice()
+        .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()),
     }));
 }
 
@@ -173,7 +159,11 @@ function AddShowForm({
         disabled={!canSubmit || isSubmitting}
         className="flex items-center justify-center gap-1.5 rounded-md bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarPlus className="h-4 w-4" />}
+        {isSubmitting ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <CalendarPlus className="h-4 w-4" />
+        )}
         Add
       </button>
     </form>
@@ -379,8 +369,8 @@ export default function TheatreDashboardPage() {
     <div className="min-h-screen bg-black text-white">
       {/* ── Header ── */}
       <header className="relative overflow-hidden border-b border-white/10">
-        <div className="absolute inset-0 bg-gradient-to-b from-zinc-900 via-zinc-950 to-black" />
-        <div className="absolute left-1/2 top-0 h-[300px] w-[600px] -translate-x-1/2 rounded-full bg-red-600/15 blur-3xl" />
+        <div className="absolute inset-0 bg-linear-to-b from-zinc-900 via-zinc-950 to-black" />
+        <div className="absolute left-1/2 top-0 h-75 w-150 -translate-x-1/2 rounded-full bg-red-600/15 blur-3xl" />
 
         <div className="relative container mx-auto flex items-center justify-between px-6 py-6">
           <span className="text-xl font-semibold tracking-tight">

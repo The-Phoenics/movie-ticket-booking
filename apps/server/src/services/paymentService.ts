@@ -1,6 +1,6 @@
 import { ServerApiError, stripe } from "@/lib";
 import { convertIntoSmallestCurrencyUnit } from "@/utils";
-import { CURRENCY } from "@movie-ticket-booking/shared/types";
+import type { CURRENCY } from "@movie-ticket-booking/shared/types";
 
 export async function createStripePaymentIntent(amount: number, currency: CURRENCY): Promise<any> {
   try {

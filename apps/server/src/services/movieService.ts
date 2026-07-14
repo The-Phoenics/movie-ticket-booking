@@ -1,11 +1,11 @@
 import { ServerApiError } from "@/lib";
 import prisma from "@movie-ticket-booking/db";
-import type { Show } from "@movie-ticket-booking/shared/types";
-import type { MovieCreateInput } from "@movie-ticket-booking/shared/types"
+import type { Movie, Show } from "@movie-ticket-booking/shared/types";
 import { format } from "date-fns";
 import { updateTheatreMovieSeatExpiredReservation } from "./seatService";
+import type { JsonObject } from "../../../../packages/db/prisma/generated/internal/prismaNamespace";
 
-export async function createMovie(movieData: MovieCreateInput) {
+export async function createMovie(movieData: Omit<Movie, "genres"> & { genres: JsonObject }) {
   try {
     const movie = await prisma.movie.create({
       data: {

@@ -1,70 +1,16 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { env } from "@movie-ticket-booking/env/web";
 import type { Seat, Theatre } from "@movie-ticket-booking/shared/types";
 import { cn } from "@/lib/utils";
-
-export async function getTheatreDetails(): Promise<Theatre> {
-  const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/profile`, {
-    credentials: "include",
-  });
-  if (!res.ok) {
-    throw new Error("Failed to fetch theatre.");
-  }
-  const data = await res.json();
-  return data.data.userProfile.theatre;
-}
+import { updateTheatreSeatLayout, useTheatreSeatsLayout, useTheatre } from "./query";
 
 type SeatStatus = "available" | "unavailable";
-type TheatreSeat = Pick<Seat, "row" | "col"> & { status: SeatStatus };
-
-export async function getTheatreSeatLayout(
-  theatreId: string,
-): Promise<Pick<Seat, "row" | "col">[]> {
-  const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/owner/${theatreId}/seats`, {
-    credentials: "include",
-  });
-  if (!res.ok) {
-    throw new Error("Failed to fetch seats.");
-  }
-  const data = await res.json();
-  return data.data.theatreSeats;
-}
-
-export async function updateTheatreSeatLayout(theatreId: string, seats: TheatreSeat[]) {
-  const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/owner/${theatreId}/seats`, {
-    method: "PATCH",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ seats }),
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to update seats.");
-  }
-
-  return res.json();
-}
-
-export function useTheatre() {
-  return useQuery({
-    queryKey: ["theatre"],
-    queryFn: getTheatreDetails,
-  });
-}
-
-export function useSeats(theatreId?: string) {
-  return useQuery({
-    queryKey: ["theatre-seats", theatreId],
-    queryFn: () => getTheatreSeatLayout(theatreId!),
-    enabled: !!theatreId,
-  });
-}
+export type TheatreSeat = Pick<Seat, "row" | "col"> & { status: SeatStatus };
 
 /** Spreadsheet-style row naming: A, B, ... Z, AA, AB, ... */
 function nextRowLabel(rows: string[]): string {
@@ -105,12 +51,8 @@ function ManageSeatsPage() {
     }
   }, [session, router]);
 
-  const theatreQuery = useQuery({
-    queryKey: ["theatre"],
-    queryFn: getTheatreDetails,
-    enabled: !!session,
-  });
-  const seatsQuery = useSeats(theatreQuery.data?.id);
+  const theatreQuery = useTheatre(session)
+  const seatsQuery = useTheatreSeatsLayout(theatreQuery.data?.id);
 
   // Build the full grid (rows x cols) from the seats the API returned, filling
   // any gap in between with "unavailable". Runs on initial load and again after

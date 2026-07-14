@@ -1,4 +1,4 @@
-import { CURRENCY } from "@movie-ticket-booking/shared/types";
+import type { CURRENCY } from "@movie-ticket-booking/shared/types";
 
 export function apiJsonRseponse<T = unknown>(
   success: boolean,
@@ -25,10 +25,10 @@ export function minutesToSeconds(timeInMinutes: number) {
 export function convertIntoSmallestCurrencyUnit(amount: number, currency: CURRENCY) {
   let convertedValue = 0;
   switch (currency) {
-    case CURRENCY.USD:
+    case "USD":
       convertedValue = amount * 100;
       break;
-    case CURRENCY.INR:
+    case "INR":
       convertedValue = amount * 100;
       break;
     default:

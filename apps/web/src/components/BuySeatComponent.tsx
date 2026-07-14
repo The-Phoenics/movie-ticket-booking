@@ -4,6 +4,7 @@ import { env } from "@movie-ticket-booking/env/web";
 import { useMutation } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { MapPin, Calendar, Clock, Armchair, Ticket, CreditCard, Tag } from "lucide-react";
+import { formatDate, formatTime } from "@/lib/utils";
 
 type SeatStatus = "AVAILABLE" | "SOLD";
 
@@ -40,23 +41,6 @@ interface BuyTheatreMovieSeatProps {
   showTime: ShowTime | null;
 }
 
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("en-IN", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-IN", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-}
-// TODO:CURRENT use this for ticekt pdf
 export default function BuyTheatreMovieSeat({
   selectedSeat,
   movieTitle,
@@ -121,7 +105,7 @@ export default function BuyTheatreMovieSeat({
       {/* Card */}
       <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 shadow-2xl">
         {/* Decorative top gradient */}
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-700 via-red-500 to-orange-400" />
+        <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-red-700 via-red-500 to-orange-400" />
 
         {/* Ticket header */}
         <div className="flex items-center gap-3 px-6 pt-6 pb-4 border-b border-zinc-800">

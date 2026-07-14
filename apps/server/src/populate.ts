@@ -8,7 +8,6 @@ import { auth } from "@movie-ticket-booking/auth";
 import { createTheatre, addMovieToTheatre } from "./services/ownerService";
 import { createSeatsBulk } from "./services/seatService";
 import { createMovie } from "./services/movieService";
-import { ProfileType } from "@movie-ticket-booking/shared/types";
 import { tmdbGetMovieById, tmdbSearchMovies } from "./services/tmdbMovieService";
 
 const populate = JSON.parse(fs.readFileSync(path.join(__dirname, "populate.json"), "utf8"));
@@ -51,7 +50,7 @@ async function main() {
     await prisma.user.update({
       where: { id: dbUser.id },
       data: {
-        role: ProfileType.CUSTOMER,
+        role: "CUSTOMER",
         isOnboarded: true,
       },
     });
@@ -96,7 +95,7 @@ async function main() {
     await prisma.user.update({
       where: { id: dbUser.id },
       data: {
-        role: ProfileType.OWNER,
+        role: "OWNER",
         isOnboarded: true,
       },
     });
@@ -138,7 +137,7 @@ async function main() {
     await prisma.user.update({
       where: { id: dbUser.id },
       data: {
-        role: ProfileType.OWNER,
+        role: "OWNER",
         isOnboarded: true,
       },
     });

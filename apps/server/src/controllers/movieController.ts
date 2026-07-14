@@ -11,13 +11,10 @@ import { apiJsonRseponse, convertIntoSmallestCurrencyUnit, minutesToSeconds } fr
 import redisClient from "@movie-ticket-booking/cache";
 import prisma from "@movie-ticket-booking/db";
 import { SEAT_RESERVATION_DURATION } from "@movie-ticket-booking/shared/constants";
-import {
+import type {
   CURRENCY,
-  ORDER_STATUS,
-  PAYMENT_PROVIDER,
-  ProfileType,
-  type TMDBMovieSearchFilter,
-  type TMDBMoviesType,
+  TMDBMovieSearchFilter,
+  TMDBMoviesType,
 } from "@movie-ticket-booking/shared/types";
 import type { NextFunction } from "express";
 import type { Request, Response } from "express";
@@ -61,6 +58,14 @@ export async function createMovieContoller(req: Request, res: Response, next: Ne
     res.status(201).json(apiJsonRseponse(true, createdMovie, "Successfully created movie", null));
   } catch (err) {
     next(err);
+  }
+}
+
+export async function getMoviesFeedController(_req: Request, _res: Response, _next: NextFunction) {
+  try {
+    // TODO:current fetch feed
+  } catch (error) {
+    throw new ServerApiError("Failed to fetch movies feed", 500);
   }
 }
 
@@ -114,7 +119,7 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
     const showId = req.params.showId as string;
     const showSeatId = req.params.showSeatId as string;
     const user = req.user;
-    if (!user || !user.id || user.role !== ProfileType.CUSTOMER) {
+    if (!user || !user.id || user.role !== "CUSTOMER") {
       throw new ServerApiError("Invalid session or invalid request by user", 401);
     }
     if (!showId) throw new ServerApiError("Invalid theatre movie", 401);
@@ -218,7 +223,7 @@ export async function buyMovieSeatController(req: Request, res: Response, next: 
     // create draft order and payment with pending states, store payment providers id
     const result = await prisma.order.create({
       data: {
-        status: ORDER_STATUS.PENDING,
+        status: "PENDING",
         customerId: customer.id,
         showSeatId: showSeatId,
         payment: {
@@ -226,7 +231,7 @@ export async function buyMovieSeatController(req: Request, res: Response, next: 
             amount: amount,
             currency: currency,
             paymentId: "", // update later
-            paymentProvider: PAYMENT_PROVIDER.STRIPE,
+            paymentProvider: "STRIPE",
           },
         },
       },

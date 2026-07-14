@@ -1,8 +1,8 @@
 import { ServerApiError } from "@/lib";
 import prisma from "@movie-ticket-booking/db";
-import type { BatchPayload } from "@movie-ticket-booking/shared/types";
-import { SEAT_STATUS, type ShowSeat } from "@movie-ticket-booking/shared/types";
+import type { ShowSeat } from "@movie-ticket-booking/shared/types";
 import { SEAT_RESERVATION_DURATION } from "@movie-ticket-booking/shared/constants";
+import type { BatchPayload } from "../../../../packages/db/prisma/generated/internal/prismaNamespace";
 
 type Seat = {
   row: string;
@@ -67,7 +67,7 @@ export async function reserveTheatreMovieSeat(
           id: showSeatId,
         },
       });
-      if (!seat || seat.status === SEAT_STATUS.SOLD) {
+      if (!seat || seat.status === "SOLD") {
         return false;
       }
 
@@ -76,7 +76,7 @@ export async function reserveTheatreMovieSeat(
           id: showSeatId,
         },
         data: {
-          status: SEAT_STATUS.SOLD,
+          status: "SOLD",
         },
       });
       // optimistic approach
@@ -134,7 +134,7 @@ export async function updateTheatreMovieSeatExpiredReservation(
         },
       },
       data: {
-        status: SEAT_STATUS.AVAILABLE,
+        status: "AVAILABLE",
       },
     });
     return {

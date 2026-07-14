@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { Route } from "next";
-import { ProfileType } from "../../../../../packages/db/prisma/generated/enums";
+import type { ProfileType } from "../../../../../packages/db/prisma/generated/enums";
 
 interface CustomerProfile {
   id: string;
@@ -335,7 +335,7 @@ export default function ProfilePage() {
   if (!profile) return null;
 
   const { user } = profile;
-  const isCustomer = user.role === ProfileType.CUSTOMER;
+  const isCustomer = user.role === "CUSTOMER";
   const initials = (user.name ?? user.email)
     .split(" ")
     .map((w) => w[0])
@@ -347,7 +347,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       {/* Background glow */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full bg-red-600/8 blur-3xl" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-150 h-100 rounded-full bg-red-600/8 blur-3xl" />
       </div>
 
       {/* Nav */}
@@ -384,7 +384,7 @@ export default function ProfilePage() {
 
         {/* Form card */}
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900 overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-red-700 via-red-500 to-orange-400" />
+          <div className="h-1 bg-linear-to-r from-red-700 via-red-500 to-orange-400" />
           <div className="px-6 py-6">
             <h2 className="text-sm font-semibold text-zinc-300 mb-5">
               {isCustomer ? "Account Details" : "Theatre Details"}

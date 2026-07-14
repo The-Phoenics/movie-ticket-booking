@@ -6,6 +6,7 @@ import {
   reserveMovieSeatController,
   buyMovieSeatController,
   searchMovieController,
+  getMoviesFeedController,
 } from "@/controllers/movieController";
 import { authRequired, validateRequest, type ValidationSchemaType } from "@/middlewares";
 import z from "zod";
@@ -79,6 +80,8 @@ moviesRouter.post(
 );
 
 moviesRouter.get("/", getMoviesController);
+
+moviesRouter.get("/feed", getMoviesFeedController);
 
 moviesRouter.get("/search", validateRequest(MovieSearchRequestSchema), searchMovieController);
 

@@ -1,10 +1,9 @@
 import { ServerApiError } from "@/lib";
 import prisma from "@movie-ticket-booking/db";
-import {
-  SEAT_STATUS,
-  type Theatre,
-  type Show,
-  type ShowSeat,
+import type {
+  Theatre,
+  Show,
+  ShowSeat,
 } from "@movie-ticket-booking/shared/types";
 
 export async function createTheatre(theatreData: Omit<Theatre, "id">) {
@@ -65,7 +64,7 @@ export async function addMovieToTheatre(
         const data: Omit<ShowSeat, "id"> = {
           showId: createdTheatreMovie.id,
           seatId: seat.id,
-          status: SEAT_STATUS.AVAILABLE,
+          status: "AVAILABLE",
           price: price,
         };
         return data;

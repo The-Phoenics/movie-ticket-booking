@@ -1,21 +1,45 @@
-// export prisma generated types
-export * from "../db/prisma/generated/client";
-export * from "../db/prisma/generated/enums";
-export * from "../db/prisma/generated/internal/prismaNamespace";
+export type {
+  User,
+  Session,
+  Account,
+  Verification,
+  Customer,
+  Theatre,
+  Movie,
+  Show,
+  Seat,
+  ShowSeat,
+  ShowSeatReservation,
+  Ticket,
+  Order,
+  Payment,
+} from "../db/prisma/generated/client";
 
-import { type User } from "../db/prisma/generated/client";
-import { type Request } from "express";
+export type {
+  ProfileType,
+  SEAT_STATUS,
+  ORDER_STATUS,
+  PAYMENT_STATUS,
+  CURRENCY,
+  PAYMENT_PROVIDER,
+  MOVIE_TAG,
+  Region,
+} from "../db/prisma/generated/enums";
+
+import * as PrismaTypes from "../db/prisma/generated/client";
+
+import type { Request } from "express";
 
 declare global {
   namespace Express {
     interface Request {
-      user?: User;
+      user?: PrismaTypes.User;
     }
   }
 }
 
 export type AuthenticatedRequest = Request & {
-  user: User;
+  user: PrismaTypes.User;
 };
 
 export enum QUEUE_TYPE {

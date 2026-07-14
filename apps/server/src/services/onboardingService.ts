@@ -1,6 +1,6 @@
 import { ServerApiError } from "@/lib";
 import prisma from "@movie-ticket-booking/db";
-import { ProfileType } from "@movie-ticket-booking/shared/types";
+import type { ProfileType } from "@movie-ticket-booking/shared/types";
 
 export async function onboardOwner(ownerData: {
   userId: string;
@@ -28,7 +28,7 @@ export async function onboardOwner(ownerData: {
       }),
       prisma.user.update({
         where: { id: ownerData.userId },
-        data: { role: ProfileType.OWNER, isOnboarded: true },
+        data: { role: "OWNER", isOnboarded: true },
       }),
     ]);
 
@@ -54,7 +54,7 @@ export async function onboardCustomer(customerData: { userId: string; name: stri
       }),
       prisma.user.update({
         where: { id: customerData.userId },
-        data: { role: ProfileType.CUSTOMER, isOnboarded: true },
+        data: { role: "CUSTOMER", isOnboarded: true },
       }),
     ]);
     return customer;
