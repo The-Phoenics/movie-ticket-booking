@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -21,15 +21,13 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Already authenticated — use isOnboarded from session to decide where to go
-  if (!sessionPending && session) {
-    if (session.user.isOnboarded) {
-      router.replace("/movies" as Route);
-    } else {
-      router.replace("/onboarding" as Route);
+  useEffect(() => {
+    if (sessionPending) return;
+
+    if (session) {
+      router.replace(session.user.isOnboarded ? ("/movies" as Route) : ("/onboarding" as Route));
     }
-    return null;
-  }
+  }, [session, sessionPending, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,11 +35,14 @@ export default function AuthPage() {
 
     if (mode === "signup") {
       await authClient.signUp.email(
-        { email, password, name },
+        {
+          email,
+          password,
+          name,
+        },
         {
           onSuccess: () => {
             toast.success("Account created! Let's set up your profile.");
-            router.push("/onboarding" as Route);
           },
           onError: (error: { error: { message?: string } }) => {
             toast.error(error.error.message || "Sign up failed. Please try again.");
@@ -51,16 +52,13 @@ export default function AuthPage() {
       );
     } else {
       await authClient.signIn.email(
-        { email, password },
         {
-          onSuccess: (response: { data: { user: { isOnboarded?: boolean } } | null }) => {
-            const isOnboarded = response.data?.user?.isOnboarded;
-            if (isOnboarded) {
-              toast.success("Welcome back!");
-              router.push("/movies" as Route);
-            } else {
-              router.push("/onboarding" as Route);
-            }
+          email,
+          password,
+        },
+        {
+          onSuccess: () => {
+            toast.success("Welcome back!");
           },
           onError: (error: { error: { message?: string } }) => {
             toast.error(error.error.message || "Sign in failed. Check your credentials.");
@@ -72,6 +70,15 @@ export default function AuthPage() {
   };
 
   if (sessionPending) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-zinc-500" />
+      </div>
+    );
+  }
+
+  // Prevent rendering while redirecting
+  if (session) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-zinc-500" />
@@ -98,7 +105,6 @@ export default function AuthPage() {
 
       {/* Card */}
       <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 shadow-2xl overflow-hidden">
-        {/* Top accent line */}
         <div className="h-1 bg-linear-to-r from-red-700 via-red-500 to-orange-400" />
 
         <div className="px-8 py-8">
@@ -115,9 +121,7 @@ export default function AuthPage() {
                   setPassword("");
                 }}
                 className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all ${
-                  mode === m
-                    ? "bg-zinc-700 text-zinc-100 shadow"
-                    : "text-zinc-500 hover:text-zinc-300"
+                  mode === m ? "bg-zinc-700 text-zinc-100 shadow" : "text-zinc-500 hover:text-zinc-300"
                 }`}
               >
                 {m === "signin" ? "Sign In" : "Sign Up"}
@@ -137,13 +141,9 @@ export default function AuthPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name — sign up only */}
             {mode === "signup" && (
               <div className="space-y-1.5">
-                <label
-                  htmlFor="name"
-                  className="text-xs font-medium uppercase tracking-wide text-zinc-500"
-                >
+                <label htmlFor="name" className="text-xs font-medium uppercase tracking-wide text-zinc-500">
                   Full Name
                 </label>
                 <input
@@ -159,12 +159,8 @@ export default function AuthPage() {
               </div>
             )}
 
-            {/* Email */}
             <div className="space-y-1.5">
-              <label
-                htmlFor="email"
-                className="text-xs font-medium uppercase tracking-wide text-zinc-500"
-              >
+              <label htmlFor="email" className="text-xs font-medium uppercase tracking-wide text-zinc-500">
                 Email
               </label>
               <input
@@ -179,14 +175,11 @@ export default function AuthPage() {
               />
             </div>
 
-            {/* Password */}
             <div className="space-y-1.5">
-              <label
-                htmlFor="password"
-                className="text-xs font-medium uppercase tracking-wide text-zinc-500"
-              >
+              <label htmlFor="password" className="text-xs font-medium uppercase tracking-wide text-zinc-500">
                 Password
               </label>
+
               <div className="relative">
                 <input
                   id="password"
@@ -199,27 +192,26 @@ export default function AuthPage() {
                   placeholder="Min. 8 characters"
                   className="w-full rounded-xl border border-zinc-700 bg-zinc-800/60 px-4 py-3 pr-11 text-sm text-zinc-100 placeholder-zinc-600 outline-none transition focus:border-red-500/60 focus:ring-2 focus:ring-red-500/15"
                 />
+
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full mt-2 flex items-center justify-center gap-2 rounded-xl bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-900/40 transition-all hover:bg-red-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400 disabled:shadow-none"
+              className="w-full mt-2 flex items-center justify-center gap-2 rounded-xl bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-900/40 hover:bg-red-500 disabled:bg-zinc-700"
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  {mode === "signin" ? "Signing in…" : "Creating account…"}
+                  {mode === "signin" ? "Signing in..." : "Creating account..."}
                 </>
               ) : mode === "signin" ? (
                 "Sign In"
@@ -230,10 +222,10 @@ export default function AuthPage() {
           </form>
         </div>
 
-        {/* Footer */}
         <div className="border-t border-zinc-800 px-8 py-4 text-center">
           <p className="text-xs text-zinc-600">
             {mode === "signin" ? "Don't have an account? " : "Already have an account? "}
+
             <button
               type="button"
               onClick={() => {
@@ -242,7 +234,7 @@ export default function AuthPage() {
                 setEmail("");
                 setPassword("");
               }}
-              className="text-zinc-400 underline underline-offset-2 hover:text-zinc-200 transition-colors"
+              className="text-zinc-400 underline underline-offset-2 hover:text-zinc-200"
             >
               {mode === "signin" ? "Sign up" : "Sign in"}
             </button>

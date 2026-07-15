@@ -116,6 +116,7 @@ model Movie {
   status            String
   tagline           String
   img               String
+  vote_average      Int
   genres            Json
   theatreMovies     Show[]
 }

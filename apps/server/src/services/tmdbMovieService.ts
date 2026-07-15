@@ -33,6 +33,7 @@ export async function tmdbGetMovieById(id: number) {
       original_language: movie.original_language,
       release_date: movie.release_date,
       popularity: movie.popularity,
+      vote_average: movie.vote_average,
       img: fullImageUrl,
       genres: movie.genres,
       status: movie.status,

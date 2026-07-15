@@ -1,6 +1,5 @@
 "use client";
 
-import { useTheatre, useTheatreSeatsLayout } from "@/app/seats/query";
 import { useAuth } from "@/components/auth-provider";
 import type { Seat, Theatre } from "@movie-ticket-booking/shared/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -14,6 +13,7 @@ import { SeatPicker } from "./components/seat-picker";
 import { toast } from "sonner";
 import { isValidDate } from "@/lib/utils";
 import { set } from "date-fns";
+import { useTheatre, useTheatreSeatsLayout } from "@/app/dashboard/seats/query";
 
 function seatKey(row: string, col: number) {
   return `${row}::${col}`;

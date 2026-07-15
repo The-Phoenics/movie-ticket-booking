@@ -172,6 +172,7 @@ async function main() {
       original_language: movieData.original_language || "en",
       release_date: new Date(movieData.release_date),
       popularity: Math.round(movieData.popularity || 0),
+      vote_average: movieData.vote_average,
       img: imgUrl,
       genres: (movieData.genres || []) as any,
       tagline: movieData.tagline || "",

@@ -72,9 +72,7 @@ export default function UserMenu() {
         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-red-600/20 text-xs font-bold text-red-400 select-none">
           {initials}
         </span>
-        <span className="max-w-30 truncate text-zinc-300 font-medium hidden sm:block">
-          {displayName}
-        </span>
+        <span className="max-w-30 truncate text-zinc-300 font-medium hidden sm:block">{displayName}</span>
         <ChevronDown
           className={`h-3.5 w-3.5 text-zinc-500 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
         />
@@ -113,14 +111,16 @@ export default function UserMenu() {
               <Film className="h-4 w-4 text-zinc-500" />
               Browse Movies
             </Link>
-            <Link
-              href={"/seats" as Route}
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-800 hover:text-zinc-100"
-            >
-              <Armchair className="h-4 w-4 text-zinc-500" />
-              Manage Seats
-            </Link>
+            {(user.role === "OWNER" || user.role === "ADMIN") && (
+              <Link
+                href={"/dashboard/seats" as Route}
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-800 hover:text-zinc-100"
+              >
+                <Armchair className="h-4 w-4 text-zinc-500" />
+                Manage Seats
+              </Link>
+            )}
           </div>
 
           <div className="border-t border-zinc-800 py-1">

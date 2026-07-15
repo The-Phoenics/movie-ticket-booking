@@ -46,7 +46,7 @@ export default function SelectTheatreMovieSeat({
     <div className="flex flex-col items-center gap-8 py-8">
       {/* Screen indicator */}
       <div className="flex w-full max-w-2xl flex-col items-center gap-2">
-        <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-transparent via-red-600/70 to-transparent shadow-[0_0_24px_4px_rgba(220,38,38,0.35)]" />
+        <div className="h-1.5 w-full rounded-full bg-linear-to-r from-transparent via-red-600/70 to-transparent shadow-[0_0_24px_4px_rgba(220,38,38,0.35)]" />
         <span className="text-xs font-medium uppercase tracking-[0.3em] text-zinc-500">screen</span>
       </div>
 

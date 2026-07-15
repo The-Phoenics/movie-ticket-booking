@@ -78,14 +78,8 @@ export async function addMovieToTheatreController(req: Request, res: Response, n
       },
     });
 
-    const startTimeString = req.body.startTime
-    const endTimeString = req.body.endTime
-
-    console.log("sstr:", startTimeString)
-    console.log("estr:", endTimeString)
-
-    const startTime = new Date(startTimeString);
-    const endTime = new Date(endTimeString);
+    const startTime = new Date(req.body.startTime);
+    const endTime = new Date(req.body.endTime);
     console.log("s:", startTime)
     console.log("e:", endTime)
     if (!isValidDateInstance(startTime) || !isValidDateInstance(endTime) || startTime >= endTime) {

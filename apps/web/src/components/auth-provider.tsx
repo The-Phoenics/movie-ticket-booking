@@ -3,6 +3,8 @@
 import { authClient } from "@/lib/auth-client";
 import { createContext, useContext, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
+import { redirect } from "next/navigation";
+import type { Route } from "next";
 
 type Session = typeof authClient.$Infer.Session | null;
 
@@ -18,6 +20,10 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       </div>
     );
   }
+
+  // if (!isPending && !session) {
+  //   redirect("/auth" as Route)
+  // }
 
   return <AuthContext.Provider value={session}>{children}</AuthContext.Provider>;
 }

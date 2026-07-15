@@ -35,6 +35,7 @@ export async function createMovieContoller(req: Request, res: Response, next: Ne
       tagline,
       img,
       genres,
+      vote_average,
     } = req.body;
 
     const movieData = {
@@ -49,6 +50,7 @@ export async function createMovieContoller(req: Request, res: Response, next: Ne
       tagline: tagline || "",
       img,
       genres: genres || [],
+      vote_average,
     };
 
     const createdMovie = await createMovie(movieData);
@@ -334,6 +336,7 @@ export async function searchMovieController(req: Request, res: Response, next: N
         release_date: movie.release_date,
         popularity: movie.popularity,
         img: fullImageUrl,
+        vote_average: movie.vote_average,
       });
     }
     return res.status(200).json(

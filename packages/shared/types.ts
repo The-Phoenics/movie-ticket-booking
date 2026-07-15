@@ -70,6 +70,7 @@ export interface TMDBMovieType {
   popularity: number;
   status: string;
   tagline: string;
+  vote_average: number;
   genres: {
     id: number;
     name: string;
@@ -86,4 +87,5 @@ export interface TMDBMoviesType {
   release_date: Date;
   popularity: number;
   img: string;
+  vote_average: number;
 }
