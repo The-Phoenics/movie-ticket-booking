@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { MapPin, Calendar, Clock, Armchair, Ticket, CreditCard, Tag } from "lucide-react";
 import { formatDate, formatTime } from "@/lib/utils";
+import type { CURRENCY } from "@movie-ticket-booking/shared/types";
 
 type SeatStatus = "AVAILABLE" | "SOLD";
 
@@ -62,7 +63,7 @@ export default function BuyTheatreMovieSeat({
       },
       credentials: "include",
       body: JSON.stringify({
-        currency: "USD", // TODO: setup shared types for web and server apps, use prisma generated CURRENCY enum type
+        currency: "INR" as CURRENCY,
         amount: selectedSeat.price,
       }),
     });

@@ -1,11 +1,12 @@
 import { ServerApiError } from "@/lib";
 import prisma from "@movie-ticket-booking/db";
-import type { Movie, Show } from "@movie-ticket-booking/shared/types";
+import type { Movie, Show, TMDBMovieType } from "@movie-ticket-booking/shared/types";
 import { format } from "date-fns";
 import { updateTheatreMovieSeatExpiredReservation } from "./seatService";
 import type { JsonObject } from "../../../../packages/db/prisma/generated/internal/prismaNamespace";
+import { tmdbGetMovieById } from "./tmdbMovieService";
 
-export async function createMovie(movieData: Omit<Movie, "genres"> & { genres: JsonObject }) {
+export async function createMovie(movieData: Omit<Movie, "id" | "genres"> & { genres: JsonObject }) {
   try {
     const movie = await prisma.movie.create({
       data: {
@@ -90,6 +91,24 @@ export async function getMovieDetailsAndTheatres(movieId: string) {
     };
   } catch (err) {
     throw new ServerApiError("DB Error: Failed to query movie details", 500);
+  }
+}
+
+export async function getMovieDetails(tmdbMovieId: number) {
+  try {
+    let dbMovie = await prisma.movie.findUnique({
+      where: {
+        tmdbMovieId: tmdbMovieId,
+      },
+    });
+    if (!dbMovie) {
+      let movie = (await tmdbGetMovieById(tmdbMovieId)) as TMDBMovieType & { tmdbMovieId: number };
+      movie.tmdbMovieId = tmdbMovieId;
+      return movie;
+    }
+    return dbMovie;
+  } catch (error) {
+    throw new ServerApiError("DB Error: Failed to fetch movie", 500);
   }
 }
 

@@ -1,21 +1,18 @@
 import { ServerApiError, stripe } from "@/lib";
 import {
   createMovie,
+  getMovieDetails,
   getMovieDetailsAndTheatres,
   getMovies,
   getShowSeats,
 } from "@/services/movieService";
 import { reserveTheatreMovieSeat, verifySeatReservationForUser } from "@/services/seatService";
 import { tmdbSearchMovies } from "@/services/tmdbMovieService";
-import { apiJsonRseponse, convertIntoSmallestCurrencyUnit, minutesToSeconds } from "@/utils";
+import { apiJsonResponse, convertIntoSmallestCurrencyUnit, minutesToSeconds } from "@/utils";
 import redisClient from "@movie-ticket-booking/cache";
 import prisma from "@movie-ticket-booking/db";
 import { SEAT_RESERVATION_DURATION } from "@movie-ticket-booking/shared/constants";
-import type {
-  CURRENCY,
-  TMDBMovieSearchFilter,
-  TMDBMoviesType,
-} from "@movie-ticket-booking/shared/types";
+import type { CURRENCY, TMDBMovieSearchFilter, TMDBMoviesType } from "@movie-ticket-booking/shared/types";
 import type { NextFunction } from "express";
 import type { Request, Response } from "express";
 
@@ -55,7 +52,7 @@ export async function createMovieContoller(req: Request, res: Response, next: Ne
     };
 
     const createdMovie = await createMovie(movieData);
-    res.status(201).json(apiJsonRseponse(true, createdMovie, "Successfully created movie", null));
+    res.status(201).json(apiJsonResponse(true, createdMovie, "Successfully created movie", null));
   } catch (err) {
     next(err);
   }
@@ -73,7 +70,19 @@ export async function getMoviesFeedController(_req: Request, _res: Response, _ne
 export async function getMoviesController(_req: Request, res: Response, next: NextFunction) {
   try {
     const movies = await getMovies();
-    return res.status(200).json(apiJsonRseponse(true, movies, "Successfully fetched movies"));
+    return res.status(200).json(apiJsonResponse(true, movies, "Successfully fetched movies"));
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getMovieWithTimingsController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const movieId = req.params.movieId as string;
+    if (!movieId) throw new ServerApiError("Invalid movie id provided", 401);
+
+    const movies = await getMovieDetailsAndTheatres(movieId);
+    return res.status(200).json(apiJsonResponse(true, movies, "Successfully fetched movie"));
   } catch (err) {
     next(err);
   }
@@ -84,18 +93,19 @@ export async function getMovieController(req: Request, res: Response, next: Next
     const movieId = req.params.movieId as string;
     if (!movieId) throw new ServerApiError("Invalid movie id provided", 401);
 
-    const movies = await getMovieDetailsAndTheatres(movieId);
-    return res.status(200).json(apiJsonRseponse(true, movies, "Successfully fetched movie"));
+    const tmdbMovieId = Number(movieId);
+    if (!tmdbMovieId || isNaN(tmdbMovieId)) {
+      throw new ServerApiError("Invalid movie id provided", 401);
+    }
+
+    const movies = await getMovieDetails(tmdbMovieId);
+    return res.status(200).json(apiJsonResponse(true, movies, "Successfully fetched movie"));
   } catch (err) {
     next(err);
   }
 }
 
-export async function getTheatreMovieSeatsController(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function getTheatreMovieSeatsController(req: Request, res: Response, next: NextFunction) {
   try {
     const showId = req.params.showId as string;
     if (!showId) throw new ServerApiError("Invalid theatre movie id provided", 401);
@@ -106,9 +116,7 @@ export async function getTheatreMovieSeatsController(
     if (!theatreMovie) throw new ServerApiError("Invalid theatre movie id provided", 401);
 
     const seats = await getShowSeats(showId);
-    return res
-      .status(200)
-      .json(apiJsonRseponse(true, seats, "Successfully fetched theatre movie seats"));
+    return res.status(200).json(apiJsonResponse(true, seats, "Successfully fetched theatre movie seats"));
   } catch (err) {
     next(err);
   }
@@ -140,7 +148,7 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
       // if reserved for same user who requested reservation then checkout to buy page
       if (reservedForUserId === customer.id) {
         return res.status(200).json(
-          apiJsonRseponse(
+          apiJsonResponse(
             true,
             {
               reservation: {
@@ -153,7 +161,7 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
         );
       }
       // if reserved for another user return not available
-      return res.status(200).json(apiJsonRseponse(false, {}, "Seat not available right now", 200));
+      return res.status(200).json(apiJsonResponse(false, {}, "Seat not available right now", 200));
     }
 
     // call reserve seat service
@@ -162,7 +170,7 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
     // if seat couldn't be resesrved - gets reserved for another user -> return seat not available
     if (!reservationSuccess) {
       return res.status(200).json(
-        apiJsonRseponse(
+        apiJsonResponse(
           true,
           {
             reservation: {
@@ -183,9 +191,7 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
     // TODO: push to expire reservation queue (bullmq)
     // expire reservation worker: remove reservation entry -> update seat status to available (don't if seat is in SOLD state) -> remove redis entry
 
-    return res
-      .status(201)
-      .json(apiJsonRseponse(true, { reservedFor: user }, "Seat successfully reserved", null));
+    return res.status(201).json(apiJsonResponse(true, { reservedFor: user }, "Seat successfully reserved", null));
   } catch (err) {
     next(err);
   }
@@ -260,11 +266,7 @@ export async function buyMovieSeatController(req: Request, res: Response, next: 
       );
     } catch (err) {
       console.log("error:", err);
-      throw new ServerApiError(
-        "Failed to create payment intent to buy ticket with order.id: " + result.id,
-        500,
-        err,
-      );
+      throw new ServerApiError("Failed to create payment intent to buy ticket with order.id: " + result.id, 500, err);
     }
 
     // udpate order payment table with payment intent id: this id will be used to update
@@ -284,7 +286,7 @@ export async function buyMovieSeatController(req: Request, res: Response, next: 
     });
 
     return res.status(200).json(
-      apiJsonRseponse(true, {
+      apiJsonResponse(true, {
         clientSecret: paymentIntent.client_secret,
         orderId: result.id,
       }),
@@ -335,7 +337,7 @@ export async function searchMovieController(req: Request, res: Response, next: N
       });
     }
     return res.status(200).json(
-      apiJsonRseponse(true, {
+      apiJsonResponse(true, {
         movies: moviesResponseData,
       }),
     );

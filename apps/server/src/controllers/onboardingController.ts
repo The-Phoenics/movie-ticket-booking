@@ -1,20 +1,20 @@
-import { apiJsonRseponse } from "@/utils";
+import { apiJsonResponse } from "@/utils";
 import { type Request, type Response } from "express";
-import { ProfileType, type AuthenticatedRequest } from "@movie-ticket-booking/shared/types";
+import type { AuthenticatedRequest } from "@movie-ticket-booking/shared/types";
 import { onboardCustomer, onboardOwner } from "@/services/onboardingService";
 
 export async function onboardingController(req: Request, res: Response) {
   const request = req as unknown as AuthenticatedRequest;
   const user = request.user;
   if (!user) {
-    return res.status(401).json(apiJsonRseponse(false, null, "Unauthorized user session"));
+    return res.status(401).json(apiJsonResponse(false, null, "Unauthorized user session"));
   }
 
   const { role } = req.body;
   if (!role || (role !== "OWNER" && role !== "CUSTOMER")) {
     return res
       .status(400)
-      .json(apiJsonRseponse(false, null, "Invalid role. Must be CUSTOMER or OWNER"));
+      .json(apiJsonResponse(false, null, "Invalid role. Must be CUSTOMER or OWNER"));
   }
 
   try {
@@ -22,7 +22,7 @@ export async function onboardingController(req: Request, res: Response) {
       const { name } = req.body as { name?: string };
 
       if (!name || typeof name !== "string" || !name.trim()) {
-        return res.status(400).json(apiJsonRseponse(false, null, "Name is required"));
+        return res.status(400).json(apiJsonResponse(false, null, "Name is required"));
       }
 
       const customer = await onboardCustomer({
@@ -30,7 +30,7 @@ export async function onboardingController(req: Request, res: Response) {
         userId: user.id,
       });
 
-      return res.status(200).json(apiJsonRseponse(true, { customer }, "Onboarding complete"));
+      return res.status(200).json(apiJsonResponse(true, { customer }, "Onboarding complete"));
     }
 
     if (role === "OWNER") {
@@ -44,7 +44,7 @@ export async function onboardingController(req: Request, res: Response) {
       if (!title || !address || !city || !country) {
         return res
           .status(400)
-          .json(apiJsonRseponse(false, null, "title, address, city and country are all required"));
+          .json(apiJsonResponse(false, null, "title, address, city and country are all required"));
       }
 
       const ownerObject = {
@@ -57,10 +57,10 @@ export async function onboardingController(req: Request, res: Response) {
         userId: user.id,
         ...ownerObject,
       });
-      return res.status(201).json(apiJsonRseponse(true, { theatre }, "Onboarding complete"));
+      return res.status(201).json(apiJsonResponse(true, { theatre }, "Onboarding complete"));
     }
   } catch (err) {
     console.error("Onboarding controller error:", err);
-    return res.status(500).json(apiJsonRseponse(false, null, "Internal server error"));
+    return res.status(500).json(apiJsonResponse(false, null, "Internal server error"));
   }
 }

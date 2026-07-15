@@ -2,7 +2,7 @@ import express, { Router } from "express";
 import prisma from "@movie-ticket-booking/db";
 import { auth } from "@movie-ticket-booking/auth";
 import { fromNodeHeaders } from "better-auth/node";
-import { apiJsonRseponse } from "../utils";
+import { apiJsonResponse } from "../utils";
 
 const customerRouter: Router = express.Router();
 
@@ -13,7 +13,7 @@ customerRouter.get("/", async (req, res) => {
 
   const user = session?.user;
   if (!session || !user) {
-    return res.status(401).json(apiJsonRseponse(false, null, "Unauthorized user session"));
+    return res.status(401).json(apiJsonResponse(false, null, "Unauthorized user session"));
   }
 
   const customer = await prisma.user.findUnique({
@@ -28,10 +28,10 @@ customerRouter.get("/", async (req, res) => {
   });
 
   if (!customer || !customer.customer) {
-    return res.status(404).json(apiJsonRseponse(false, null, "User not found"));
+    return res.status(404).json(apiJsonResponse(false, null, "User not found"));
   }
 
-  return res.status(200).json(apiJsonRseponse(true, customer, "User fetched successfully"));
+  return res.status(200).json(apiJsonResponse(true, customer, "User fetched successfully"));
 });
 
 customerRouter.patch("/", async (req, res) => {
@@ -40,7 +40,7 @@ customerRouter.patch("/", async (req, res) => {
   });
   const user = session?.user;
   if (!session || !user) {
-    return res.status(401).json(apiJsonRseponse(false, null, "Unauthorized user session"));
+    return res.status(401).json(apiJsonResponse(false, null, "Unauthorized user session"));
   }
 
   const { name } = req.body as { name?: string };
@@ -48,13 +48,13 @@ customerRouter.patch("/", async (req, res) => {
 
   if (name !== undefined) {
     if (typeof name !== "string" || !name.trim()) {
-      return res.status(400).json(apiJsonRseponse(false, null, "Invalid name"));
+      return res.status(400).json(apiJsonResponse(false, null, "Invalid name"));
     }
     updateData.name = name.trim();
   }
 
   if (Object.keys(updateData).length === 0) {
-    return res.status(400).json(apiJsonRseponse(false, null, "No valid fields to update"));
+    return res.status(400).json(apiJsonResponse(false, null, "No valid fields to update"));
   }
 
   const updatedUser = await prisma.customer.update({
@@ -63,10 +63,10 @@ customerRouter.patch("/", async (req, res) => {
   });
 
   if (!updatedUser) {
-    return res.status(401).json(apiJsonRseponse(false, null, "Invalid user data input"));
+    return res.status(401).json(apiJsonResponse(false, null, "Invalid user data input"));
   }
 
-  return res.status(200).json(apiJsonRseponse(true, updatedUser, "User updated successfully"));
+  return res.status(200).json(apiJsonResponse(true, updatedUser, "User updated successfully"));
 });
 
 export default customerRouter;

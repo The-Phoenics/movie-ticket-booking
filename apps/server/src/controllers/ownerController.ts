@@ -2,7 +2,7 @@ import { ServerApiError } from "@/lib";
 import { createTheatre, theatreNumOfSeats, addMovieToTheatre } from "@/services/ownerService";
 import { getShows } from "@/services/movieService";
 import { tmdbGetMovieById } from "@/services/tmdbMovieService";
-import { apiJsonRseponse, isValidDateInstance } from "@/utils";
+import { apiJsonResponse, isValidDateInstance } from "@/utils";
 import prisma from "@movie-ticket-booking/db";
 import type { NextFunction, Request, Response } from "express";
 
@@ -17,7 +17,7 @@ export async function createTheatreContoller(req: Request, res: Response, next: 
     const { title, address, city, country } = req.body;
     const theatreData = { title, userId, address, city, country };
     const created = await createTheatre(theatreData);
-    res.status(201).json(apiJsonRseponse(true, created, "Successfully created theatre", null));
+    res.status(201).json(apiJsonResponse(true, created, "Successfully created theatre", null));
   } catch (err) {
     next(err);
   }
@@ -47,7 +47,7 @@ export async function addMovieToTheatreController(req: Request, res: Response, n
       throw new ServerApiError("Add seats to theatre before adding movies", 401);
     }
 
-    // check that the movies doesn't already exist
+    // check that the movie exist
     if (!tmdbMovie) {
       throw new ServerApiError("Invalid tmdb movie id or movie already exist in this theatre", 401);
     }
@@ -78,15 +78,23 @@ export async function addMovieToTheatreController(req: Request, res: Response, n
       },
     });
 
-    const startTime = new Date(req.body.startTime);
-    const endTime = new Date(req.body.endTime);
-    if (!isValidDateInstance(startTime) || !isValidDateInstance(endTime) || startTime > endTime) {
-      throw new ServerApiError("Invalid movie start or end date", 401);
+    const startTimeString = req.body.startTime
+    const endTimeString = req.body.endTime
+
+    console.log("sstr:", startTimeString)
+    console.log("estr:", endTimeString)
+
+    const startTime = new Date(startTimeString);
+    const endTime = new Date(endTimeString);
+    console.log("s:", startTime)
+    console.log("e:", endTime)
+    if (!isValidDateInstance(startTime) || !isValidDateInstance(endTime) || startTime >= endTime) {
+      throw new ServerApiError("Invalid movie start or end date", 400);
     }
 
     const price = Number(req.body.price);
     if (!price || isNaN(price)) {
-      throw new ServerApiError("Invalid movie ticket price value", 401);
+      throw new ServerApiError("Invalid movie ticket price value", 400);
     }
 
     // add movie to theatre
@@ -99,7 +107,7 @@ export async function addMovieToTheatreController(req: Request, res: Response, n
     );
     res
       .status(201)
-      .json(apiJsonRseponse(true, { theatreMovie }, "Successfully added movie to theatre", null));
+      .json(apiJsonResponse(true, { theatreMovie }, "Successfully added movie to theatre", null));
   } catch (err) {
     console.log("errrrr", err);
     next(err);
@@ -110,7 +118,7 @@ export async function getShowController(req: Request, res: Response, next: NextF
   // TODO: create a valiate theatre request reusable function to verify if theatre is valid or not
   const theatreId = req.params.theatreId as string;
   if (!theatreId) {
-    res.status(404).json(apiJsonRseponse(false, null, "Invalid theatre id"));
+    res.status(404).json(apiJsonResponse(false, null, "Invalid theatre id"));
   }
 
   const theatre = await prisma.theatre.findUnique({
@@ -118,11 +126,11 @@ export async function getShowController(req: Request, res: Response, next: NextF
       id: theatreId,
     },
   });
-  if (!theatre) res.status(404).json(apiJsonRseponse(false, null, "Invalid theatre id"));
+  if (!theatre) res.status(404).json(apiJsonResponse(false, null, "Invalid theatre id"));
 
   try {
     const movies = await getShows(theatreId);
-    res.status(200).json(apiJsonRseponse(true, movies, "Successfully fetched movies"));
+    res.status(200).json(apiJsonResponse(true, movies, "Successfully fetched movies"));
   } catch (err) {
     next(err);
   }

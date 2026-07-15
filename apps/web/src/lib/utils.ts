@@ -37,3 +37,7 @@ export function formatDate(iso: string) {
     year: "numeric",
   });
 }
+
+export function isValidDate(date: Date) {
+  return date instanceof Date && !Number.isNaN(date.getTime());
+}

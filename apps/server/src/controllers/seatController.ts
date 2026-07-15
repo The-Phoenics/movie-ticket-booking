@@ -1,6 +1,6 @@
 import { ServerApiError } from "@/lib";
 import { createSeatsBulk, deleteSeatsBulk } from "@/services/seatService";
-import { apiJsonRseponse } from "@/utils";
+import { apiJsonResponse } from "@/utils";
 import prisma from "@movie-ticket-booking/db";
 import type { Seat } from "@movie-ticket-booking/shared/types";
 import type { NextFunction, Request, Response } from "express";
@@ -29,7 +29,7 @@ export async function createSeatsController(req: Request, res: Response, next: N
     res
       .status(201)
       .json(
-        apiJsonRseponse(
+        apiJsonResponse(
           true,
           created,
           `Successfully created seats for theatre: \"${theatre.title}\"`,
@@ -93,7 +93,7 @@ export async function udpateSeatLayoutController(req: Request, res: Response, ne
     const created = await createSeatsBulk(seatsToCreate, theatreId);
     const deleted = await deleteSeatsBulk(seatsToDelete, theatreId);
     res.status(201).json(
-      apiJsonRseponse(
+      apiJsonResponse(
         true,
         {
           created,
@@ -136,7 +136,7 @@ export async function getSeatsController(req: Request, res: Response, next: Next
     res
       .status(201)
       .json(
-        apiJsonRseponse(
+        apiJsonResponse(
           true,
           theatreSeatsDto,
           `Successfully created seats for theatre: \"${theatre.title}\"`,
@@ -171,7 +171,7 @@ export async function deleteSeatsController(req: Request, res: Response, next: N
     res
       .status(204)
       .json(
-        apiJsonRseponse(
+        apiJsonResponse(
           true,
           null,
           `Successfully deleted seats for theatre: \"${theatre.title}\"`,

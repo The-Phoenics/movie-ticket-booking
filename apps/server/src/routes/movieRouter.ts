@@ -1,12 +1,13 @@
 import express, { Router } from "express";
 import {
   getMoviesController,
-  getMovieController,
+  getMovieWithTimingsController,
   getTheatreMovieSeatsController,
   reserveMovieSeatController,
   buyMovieSeatController,
   searchMovieController,
   getMoviesFeedController,
+  getMovieController,
 } from "@/controllers/movieController";
 import { authRequired, validateRequest, type ValidationSchemaType } from "@/middlewares";
 import z from "zod";
@@ -33,6 +34,8 @@ const GetMovieValidationSchema: ValidationSchemaType = {
     movieId: z.string().min(1),
   }),
 };
+
+const GetMovieWithTimingValidationSchema: ValidationSchemaType = GetMovieValidationSchema;
 
 const GetTheatreMovieValidationSchema: ValidationSchemaType = {
   params: z.object({
@@ -72,12 +75,7 @@ const MovieSearchRequestSchema: ValidationSchemaType = {
 const moviesRouter: Router = express.Router();
 
 // create movie
-moviesRouter.post(
-  "/",
-  authRequired,
-  validateRequest(CreateMovieRequestSchema),
-  createMovieContoller,
-);
+moviesRouter.post("/", authRequired, validateRequest(CreateMovieRequestSchema), createMovieContoller);
 
 moviesRouter.get("/", getMoviesController);
 
@@ -86,14 +84,16 @@ moviesRouter.get("/feed", getMoviesFeedController);
 moviesRouter.get("/search", validateRequest(MovieSearchRequestSchema), searchMovieController);
 
 // get movie with available theatres with timing
+moviesRouter.get(
+  "/:movieId/timings",
+  validateRequest(GetMovieWithTimingValidationSchema),
+  getMovieWithTimingsController,
+);
+
 moviesRouter.get("/:movieId", validateRequest(GetMovieValidationSchema), getMovieController);
 
 // get theatre movie seats (seats reservation page)
-moviesRouter.get(
-  "/:movieId/:showId",
-  validateRequest(GetTheatreMovieValidationSchema),
-  getTheatreMovieSeatsController,
-);
+moviesRouter.get("/:movieId/:showId", validateRequest(GetTheatreMovieValidationSchema), getTheatreMovieSeatsController);
 
 moviesRouter.post(
   "/:movieId/:showId/reserve/:showSeatId",

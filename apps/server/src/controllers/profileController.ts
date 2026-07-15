@@ -1,6 +1,6 @@
 import { ServerApiError } from "@/lib";
 import { getUserProfile, updateUserProfile } from "@/services/profileService";
-import { apiJsonRseponse } from "@/utils";
+import { apiJsonResponse } from "@/utils";
 import type { ProfileType } from "@movie-ticket-booking/shared/types";
 import type { Request, Response } from "express";
 import z from "zod";
@@ -8,14 +8,14 @@ import z from "zod";
 export async function getProfileController(req: Request, res: Response) {
   const user = req.user;
   if (!user) {
-    return res.status(401).json(apiJsonRseponse(false, null, "Unauthorized"));
+    return res.status(401).json(apiJsonResponse(false, null, "Unauthorized"));
   }
 
   const userProfile = await getUserProfile(user.id);
   if (!userProfile) {
-    return res.status(404).json(apiJsonRseponse(false, null, "User not found"));
+    return res.status(404).json(apiJsonResponse(false, null, "User not found"));
   }
-  return res.status(200).json(apiJsonRseponse(true, { userProfile }, "Profile fetched"));
+  return res.status(200).json(apiJsonResponse(true, { userProfile }, "Profile fetched"));
 }
 
 const updateCustomerSchema = z.object({
@@ -34,12 +34,12 @@ const updateTheatreSchema = z.object({
 export async function updateProfileController(req: Request, res: Response) {
   const user = req.user;
   if (!user || !user.id) {
-    return res.status(401).json(apiJsonRseponse(false, null, "Unauthorized"));
+    return res.status(401).json(apiJsonResponse(false, null, "Unauthorized"));
   }
 
   const userProfile = await getUserProfile(user.id);
   if (!userProfile) {
-    return res.status(404).json(apiJsonRseponse(false, null, "User not found"));
+    return res.status(404).json(apiJsonResponse(false, null, "User not found"));
   }
 
   // validate input body
@@ -58,9 +58,9 @@ export async function updateProfileController(req: Request, res: Response) {
 
   try {
     const updateProfile = await updateUserProfile(user.id, req.body);
-    return res.status(200).json(apiJsonRseponse(true, { updateProfile }, "Profile updated"));
+    return res.status(200).json(apiJsonResponse(true, { updateProfile }, "Profile updated"));
   } catch (err) {
     console.error("Profile update error:", err);
-    return res.status(500).json(apiJsonRseponse(false, null, "Internal server error"));
+    return res.status(500).json(apiJsonResponse(false, null, "Internal server error"));
   }
 }
