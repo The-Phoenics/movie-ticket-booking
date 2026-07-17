@@ -3,9 +3,10 @@ import { Star, Clock, ChevronRight } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import type { TMDBMoviesType, User } from "@movie-ticket-booking/shared/types";
+import type { Movie } from "@movie-ticket-booking/shared/types";
+import type { ClientSessionUser } from "./auth-provider";
 
-export default function MovieCard({ movie, user }: { movie: TMDBMoviesType; user: User }) {
+export default function ShowCard({ movie, user }: { movie: Movie; user: ClientSessionUser }) {
   const router = useRouter();
   if (!user) return null;
 
@@ -27,7 +28,7 @@ export default function MovieCard({ movie, user }: { movie: TMDBMoviesType; user
       {/* Card body */}
       <div className="p-4 flex flex-col gap-2 flex-1">
         <h3 className="[font-family:var(--display,'Fraunces',serif)] text-base font-semibold text-[#fafafa] leading-[1.3] m-0 line-clamp-2">
-          {movie.original_title}
+          {movie.title}
         </h3>
 
         <div className="flex flex-wrap gap-1.5">
@@ -80,7 +81,7 @@ export default function MovieCard({ movie, user }: { movie: TMDBMoviesType; user
   );
 }
 
-export function MovieCardSkeleton() {
+export function ShowCardSkeleton() {
   return (
     <div className="bg-[#18181b] border border-white/[0.07] rounded-[14px] overflow-hidden">
       <div className="h-70 bg-[linear-gradient(90deg,#27272a_25%,#3f3f46_50%,#27272a_75%)] bg-size-[200%_100%] animate-[shimmer_1.5s_infinite]" />

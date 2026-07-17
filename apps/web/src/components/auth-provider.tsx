@@ -3,12 +3,11 @@
 import { authClient } from "@/lib/auth-client";
 import { createContext, useContext, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
-import { redirect } from "next/navigation";
-import type { Route } from "next";
 
-type Session = typeof authClient.$Infer.Session | null;
+export type ClientSession = typeof authClient.$Infer.Session;
+export type ClientSessionUser = ClientSession["user"]
 
-export const AuthContext = createContext<Session | undefined>(undefined);
+export const AuthContext = createContext<ClientSession | null>(null);
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
   const { data: session, isPending } = authClient.useSession();
@@ -20,10 +19,6 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       </div>
     );
   }
-
-  // if (!isPending && !session) {
-  //   redirect("/auth" as Route)
-  // }
 
   return <AuthContext.Provider value={session}>{children}</AuthContext.Provider>;
 }

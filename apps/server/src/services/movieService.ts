@@ -108,22 +108,8 @@ export async function getMovieDetails(tmdbMovieId: number) {
     }
     return dbMovie;
   } catch (error) {
-    throw new ServerApiError("DB Error: Failed to fetch movie", 500);
+    throw new ServerApiError("DB Error: Failed to fetch movie", 500, error);
   }
-}
-
-export async function getShows(theatreId: string) {
-  let movies = null;
-  try {
-    movies = await prisma.show.findMany({
-      where: {
-        theatreId: theatreId,
-      },
-    });
-  } catch (err) {
-    throw new ServerApiError("DB Error: Failed to query movies", 500);
-  }
-  return movies;
 }
 
 // get movies details and all the theatres list where movies is available

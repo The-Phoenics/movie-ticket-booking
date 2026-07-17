@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { Route } from "next";
-import type { ProfileType } from "../../../../../packages/db/prisma/generated/enums";
 
 interface CustomerProfile {
   id: string;
@@ -44,8 +43,6 @@ interface ProfileData {
     theatre: TheatreProfile | null;
   };
 }
-
-// ─── Field component ──────────────────────────────────────────────────────────
 
 function Field({
   label,
@@ -335,6 +332,7 @@ export default function ProfilePage() {
   if (!profile) return null;
 
   const { user } = profile;
+  if (!user) return null; // TODO:CURRENT - Not working
   const isCustomer = user.role === "CUSTOMER";
   const initials = (user.name ?? user.email)
     .split(" ")

@@ -1,10 +1,10 @@
 import { ServerApiError } from "@/lib";
 import { createTheatre, theatreNumOfSeats, addMovieToTheatre } from "@/services/ownerService";
-import { getShows } from "@/services/movieService";
 import { tmdbGetMovieById } from "@/services/tmdbMovieService";
 import { apiJsonResponse, isValidDateInstance } from "@/utils";
 import prisma from "@movie-ticket-booking/db";
 import type { NextFunction, Request, Response } from "express";
+import { getTheatreActiveShows } from "@/services/showService";
 
 export async function createTheatreContoller(req: Request, res: Response, next: NextFunction) {
   try {
@@ -63,7 +63,8 @@ export async function addMovieToTheatreController(req: Request, res: Response, n
       status: tmdbMovie.status,
       tagline: tmdbMovie.tagline,
       img: tmdbMovie.img,
-      genres: tmdbMovie.genres,
+      genres: tmdbMovie.genres ?? [],
+      vote_average: tmdbMovie.vote_average,
     };
 
     const createdMovie = await prisma.movie.upsert({
@@ -80,8 +81,6 @@ export async function addMovieToTheatreController(req: Request, res: Response, n
 
     const startTime = new Date(req.body.startTime);
     const endTime = new Date(req.body.endTime);
-    console.log("s:", startTime)
-    console.log("e:", endTime)
     if (!isValidDateInstance(startTime) || !isValidDateInstance(endTime) || startTime >= endTime) {
       throw new ServerApiError("Invalid movie start or end date", 400);
     }
@@ -92,16 +91,8 @@ export async function addMovieToTheatreController(req: Request, res: Response, n
     }
 
     // add movie to theatre
-    const theatreMovie = await addMovieToTheatre(
-      theatreId,
-      createdMovie.id,
-      startTime,
-      endTime,
-      price,
-    );
-    res
-      .status(201)
-      .json(apiJsonResponse(true, { theatreMovie }, "Successfully added movie to theatre", null));
+    const theatreMovie = await addMovieToTheatre(theatreId, createdMovie.id, startTime, endTime, price);
+    res.status(201).json(apiJsonResponse(true, { theatreMovie }, "Successfully added movie to theatre", null));
   } catch (err) {
     console.log("errrrr", err);
     next(err);
@@ -115,16 +106,10 @@ export async function getShowController(req: Request, res: Response, next: NextF
     res.status(404).json(apiJsonResponse(false, null, "Invalid theatre id"));
   }
 
-  const theatre = await prisma.theatre.findUnique({
-    where: {
-      id: theatreId,
-    },
-  });
-  if (!theatre) res.status(404).json(apiJsonResponse(false, null, "Invalid theatre id"));
-
   try {
-    const movies = await getShows(theatreId);
-    res.status(200).json(apiJsonResponse(true, movies, "Successfully fetched movies"));
+    const activeShows = await getTheatreActiveShows(theatreId);
+    if (!activeShows) res.status(404).json(apiJsonResponse(false, null, "Invalid theatre id"));
+    res.status(200).json(apiJsonResponse(true, activeShows, "Successfully fetched movies"));
   } catch (err) {
     next(err);
   }

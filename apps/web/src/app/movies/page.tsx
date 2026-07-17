@@ -12,12 +12,14 @@ export default function MoviesPage() {
   const auth = useAuth();
   const [showFilters, setShowFilters] = useState(false);
   const { search, setSearch, sortBy, setSortBy, movies, isPending, isError, clearFilters } = useMoviesList();
+  const moviesSortedByRating = movies.sort((a, b) => a.vote_average - b.vote_average)
+  console.log(moviesSortedByRating)
 
   if (!auth) return null;
 
   return (
     <div className="min-h-screen w-full bg-[#09090b] text-[#fafafa] [font-family:var(--body,'Archivo',sans-serif)]">
-      <HeroHeader search={search} setSearch={setSearch} />
+      <HeroHeader search={search} setSearch={setSearch} showRegion={true} />
 
       {showFilters && <SortFiltersPanel sortBy={sortBy} onChange={setSortBy} />}
 
@@ -27,7 +29,7 @@ export default function MoviesPage() {
         )}
 
         <MovieGrid
-          movies={movies}
+          movies={moviesSortedByRating}
           isPending={isPending}
           isError={isError}
           search={search}

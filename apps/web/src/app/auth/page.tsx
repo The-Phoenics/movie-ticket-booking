@@ -87,21 +87,11 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center px-4 py-12">
+    <div className="bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center px-4 py-12 pt-28">
       {/* Background glow */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-150 h-100 rounded-full bg-red-600/10 blur-3xl" />
       </div>
-
-      {/* Logo */}
-      <Link href="/" className="mb-8 flex items-center gap-2 group">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-600/15 text-red-400 group-hover:bg-red-600/25 transition-colors">
-          <Film className="h-5 w-5" />
-        </span>
-        <span className="font-fraunces text-xl font-semibold tracking-tight">
-          Mtb<span className="text-red-500">.</span>
-        </span>
-      </Link>
 
       {/* Card */}
       <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 shadow-2xl overflow-hidden">
@@ -120,7 +110,7 @@ export default function AuthPage() {
                   setEmail("");
                   setPassword("");
                 }}
-                className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all ${
+                className={`flex-1 hover:cursor-pointer rounded-lg py-2 text-sm font-semibold transition-all ${
                   mode === m ? "bg-zinc-700 text-zinc-100 shadow" : "text-zinc-500 hover:text-zinc-300"
                 }`}
               >
@@ -206,7 +196,7 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full mt-2 flex items-center justify-center gap-2 rounded-xl bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-900/40 hover:bg-red-500 disabled:bg-zinc-700"
+              className="w-full mt-2 flex items-center hover:cursor-pointer justify-center gap-2 rounded-xl bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-900/40 hover:bg-red-500 disabled:bg-zinc-700"
             >
               {isSubmitting ? (
                 <>

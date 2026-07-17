@@ -1,12 +1,8 @@
 import { ServerApiError } from "@/lib";
 import { env } from "@movie-ticket-booking/env/server";
-import type {
-  TMDBMovieSearchFilter,
-  TMDBMoviesType,
-  TMDBMovieType,
-} from "@movie-ticket-booking/shared/types";
+import type { TMDBMovieSearchFilter, TMDBMoviesType, TMDBMovieType } from "@movie-ticket-booking/shared/types";
 
-export async function tmdbGetMovieById(id: number) {
+export async function tmdbGetMovieById(id: number): Promise<TMDBMovieType> {
   try {
     const url = `https://api.themoviedb.org/3/movie/${id}`;
     const options = {

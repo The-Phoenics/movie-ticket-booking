@@ -17,7 +17,7 @@ export default function MoviesPage() {
 
   return (
     <div className="min-h-screen w-full bg-[#09090b] text-[#fafafa] [font-family:var(--body,'Archivo',sans-serif)]">
-      <HeroHeader search={search} setSearch={setSearch} />
+      <HeroHeader search={search} setSearch={setSearch} showRegion={false} />
 
       {showFilters && <SortFiltersPanel sortBy={sortBy} onChange={setSortBy} />}
 

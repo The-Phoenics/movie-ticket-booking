@@ -19,9 +19,7 @@ export function useTheatreSeatsLayout(theatreId?: string) {
   });
 }
 
-export async function getTheatreSeatLayout(
-  theatreId: string,
-): Promise<Pick<Seat, "row" | "col">[]> {
+export async function getTheatreSeatLayout(theatreId: string): Promise<Pick<Seat, "row" | "col">[]> {
   const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/owner/${theatreId}/seats`, {
     credentials: "include",
   });
@@ -43,8 +41,13 @@ export async function updateTheatreSeatLayout(theatreId: string, seats: TheatreS
   if (!res.ok) {
     throw new Error("Failed to update seats.");
   }
-
   return res.json();
+}
+
+interface GetTheatreDetailsResponse {
+  userProfile: {
+    theatre: Theatre;
+  };
 }
 
 export async function getTheatreDetails(): Promise<Theatre> {
@@ -52,8 +55,13 @@ export async function getTheatreDetails(): Promise<Theatre> {
     credentials: "include",
   });
   if (!res.ok) {
-    throw new Error("Failed to fetch theatre.");
+    throw new Error("Network error.");
   }
-  const data = await res.json();
-  return data.data.userProfile.theatre;
+  const result = await res.json();
+  if (!result.success) {
+    throw new Error("Couldn't find theatre details");
+  }
+  const data: GetTheatreDetailsResponse = result.data;
+  console.log(data);
+  return data.userProfile.theatre;
 }

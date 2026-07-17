@@ -19,7 +19,16 @@ export function useMovie(movieId: string) {
 async function fetchMovie(movieId: string) {
   const url = `${env.NEXT_PUBLIC_SERVER_URL}/movies/${movieId}`;
   const res = await fetch(url);
-  return res.json();
+  if (!res.ok) {
+    throw new Error("Couldn't find the requested movie");
+  }
+  const result = await res.json();
+  console.log("result", result)
+  if (!result.success) {
+    throw new Error("Couldn't find the requested movie");
+  }
+  console.log("result data", result.data)
+  return result.data;
 }
 
 export async function addMovieShowToTheatre(theatreId: string, movieId: string, payload: AddMovieShowtimePayload) {

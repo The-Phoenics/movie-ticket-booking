@@ -1,7 +1,6 @@
 import { ServerApiError } from "@/lib";
 import { getUserProfile, updateUserProfile } from "@/services/profileService";
 import { apiJsonResponse } from "@/utils";
-import type { ProfileType } from "@movie-ticket-booking/shared/types";
 import type { Request, Response } from "express";
 import z from "zod";
 

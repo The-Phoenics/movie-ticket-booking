@@ -8,6 +8,7 @@ import type { Route } from "next";
 import type { Seat, Theatre } from "@movie-ticket-booking/shared/types";
 import { cn } from "@/lib/utils";
 import { updateTheatreSeatLayout, useTheatreSeatsLayout, useTheatre } from "./query";
+import ErrorComponent from "@/components/error";
 
 type SeatStatus = "available" | "unavailable";
 export type TheatreSeat = Pick<Seat, "row" | "col"> & { status: SeatStatus };
@@ -155,12 +156,7 @@ function ManageSeatsPage() {
 
   if (theatreQuery.isError) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#09090b] px-6">
-        <div className="max-w-sm text-center">
-          <p className="text-sm font-medium text-red-400">Couldn't load your theatre</p>
-          <p className="mt-1 text-sm text-zinc-500">{theatreQuery.error.message}</p>
-        </div>
-      </div>
+      <ErrorComponent message={theatreQuery.error.message} />
     );
   }
 

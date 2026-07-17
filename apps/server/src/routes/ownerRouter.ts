@@ -102,6 +102,6 @@ ownerRouter.post(
 );
 
 // get theatre movies
-ownerRouter.get("/:theatreId/movies", getShowController);
+ownerRouter.get("/:theatreId/shows", getShowController);
 
 export default ownerRouter;

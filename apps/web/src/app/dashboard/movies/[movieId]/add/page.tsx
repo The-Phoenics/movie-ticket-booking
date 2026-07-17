@@ -14,6 +14,9 @@ import { toast } from "sonner";
 import { isValidDate } from "@/lib/utils";
 import { set } from "date-fns";
 import { useTheatre, useTheatreSeatsLayout } from "@/app/dashboard/seats/query";
+import Link from "next/link";
+import { Loader2 } from "lucide-react";
+import ErrorComponent from "@/components/error";
 
 function seatKey(row: string, col: number) {
   return `${row}::${col}`;
@@ -48,11 +51,6 @@ export default function AddMovieToTheatrePage() {
     const fetchedTheatre = theatreQuery.data ?? null;
     setTheatre(fetchedTheatre);
   }, [theatreQuery.data]);
-
-  useEffect(() => {
-    const fetchedMovie = movieQuery.data;
-    console.log("fetched movie:", fetchedMovie);
-  }, [movieQuery.data]);
 
   useEffect(() => {
     const fetchedTheatreSeats = theatreSeatsLayout.data ?? [];
@@ -102,15 +100,19 @@ export default function AddMovieToTheatrePage() {
   if (!session) return null;
 
   if (movieQuery.isPending || theatreQuery.isPending) {
-    return <div className="grid min-h-screen place-items-center bg-[#09090b] text-sm text-zinc-500">Loading…</div>;
+    return (
+      <div className="grid pt-72 place-items-center bg-[#09090b] text-sm text-zinc-500">
+        <Loader2 className="h-6 w-6 animate-spin text-zinc-500" />
+      </div>
+    );
   }
 
   if (movieQuery.isError) {
-    return <PageError title="Couldn't load movie" message={movieQuery.error.message} />;
+    return <ErrorComponent message={movieQuery.error.message} link="/dashboard/movies" linkText="Go back" />;
   }
 
   if (theatreQuery.isError) {
-    return <PageError title="Couldn't load your theatre" message={theatreQuery.error.message} />;
+    return <div>{theatreQuery.error.message}</div>;
   }
 
   return (
@@ -131,7 +133,7 @@ export default function AddMovieToTheatrePage() {
       </div>
 
       <div className="mx-auto w-full flex justify-center items-center flex-col">
-        <MovieSummary movie={movieQuery.data.data} />
+        <MovieSummary movie={movieQuery.data} />
 
         <div className="mt-8 max-w-2xl">
           <div className="flex items-center justify-center gap-3">
@@ -167,17 +169,6 @@ export default function AddMovieToTheatrePage() {
             {addShowtimeMutation.isPending ? "Adding…" : "Add Show"}
           </button>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function PageError({ title, message }: { title: string; message: string }) {
-  return (
-    <div className="grid min-h-screen place-items-center bg-[#09090b] px-6">
-      <div className="max-w-sm text-center">
-        <p className="text-sm font-medium text-red-400">{title}</p>
-        <p className="mt-1 text-sm text-zinc-500">{message}</p>
       </div>
     </div>
   );
