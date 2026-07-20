@@ -1,21 +1,22 @@
 "use client";
 
-import { useAuth } from "@/components/auth-provider";
-import { useTheatre } from "../seats/query";
+import { useAuth } from "@/components/providers/auth-provider";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import ShowCard from "@/components/show-card";
-import { useTheatreActiveShows, type TheatreActiveShowsResponse } from "./query";
+import ErrorComponent from "@/components/error";
+import { useTheatre } from "@/hooks/query/useTheatre";
+import { useTheatreActiveShows, type TheatreActiveShowsResponse } from "@/hooks/query/useTheatreActiveShows";
 
 export default function TheatreShows() {
   const session = useAuth();
   const theatreQuery = useTheatre(session);
   const activeShowsQuery = useTheatreActiveShows(theatreQuery.data?.id);
-  const [shows, setShows] = useState<TheatreActiveShowsResponse["data"]>([]);
+  const [movieShow, setMovieShows] = useState<TheatreActiveShowsResponse["data"]>([]);
 
   useEffect(() => {
-    console.log(activeShowsQuery.data);
-    setShows(activeShowsQuery.data ?? []);
+    console.log("active shows data: ", activeShowsQuery.data);
+    setMovieShows(activeShowsQuery.data ?? []);
   }, [activeShowsQuery.data]);
 
   if (activeShowsQuery.isPending) {
@@ -47,15 +48,23 @@ export default function TheatreShows() {
 
   return (
     <div className="w-full h-full p-8">
-      <div className="w-full">
-        {session?.user && (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
-            {shows.map((show) => (
-              <ShowCard key={show.id} movie={show.movie} user={session.user} />
-            ))}
-          </div>
-        )}
-      </div>
+      {movieShow.length > 0 && (
+        <div className="w-full">
+          <h1 className="mt-2 mb-6 flex justify-center ml-1 text-2xl font-semibold tracking-tight text-zinc-50">
+            Current Active Shows
+          </h1>
+          {session?.user && (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
+              {movieShow.map((show) => (
+                <ShowCard key={show.movie.id} movie={show.movie} shows={show.shows} user={session.user} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+      {movieShow.length <= 0 && (
+        <ErrorComponent message="No Active Shows" link={"/dashboard/movies"} linkText={"Add Shows"} />
+      )}
     </div>
   );
 }

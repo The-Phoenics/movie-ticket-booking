@@ -89,3 +89,10 @@ export interface TMDBMoviesType {
   img: string;
   vote_average: number;
 }
+
+export type ServerApiResponseShape<E = Error, D = any> = {
+  data: D;
+  message: string;
+  error: E;
+  success: boolean;
+};

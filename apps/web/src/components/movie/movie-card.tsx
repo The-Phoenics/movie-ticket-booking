@@ -3,9 +3,10 @@ import { Star, Clock, ChevronRight } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import type { TMDBMoviesType, User } from "@movie-ticket-booking/shared/types";
+import type { TMDBMoviesType } from "@movie-ticket-booking/shared/types";
+import type { ClientSessionUser } from "../providers/auth-provider";
 
-export default function MovieCard({ movie, user }: { movie: TMDBMoviesType; user: User }) {
+export default function MovieCard({ movie, user }: { movie: TMDBMoviesType; user: ClientSessionUser }) {
   const router = useRouter();
   if (!user) return null;
 
@@ -20,7 +21,7 @@ export default function MovieCard({ movie, user }: { movie: TMDBMoviesType; user
         )}
         <div className="absolute top-2.5 left-2.5 flex items-center gap-1 bg-black/65 backdrop-blur-sm border border-white/12 rounded-lg py-1 px-2 text-[0.8125rem] font-semibold text-[#fbbf24]">
           <Star className="w-2.75 h-2.75 fill-[#fbbf24] stroke-none" />
-          <span>{movie.vote_average.toFixed(1) ?? "—"}</span>
+          <span>{movie.vote_average > 0 ? (movie.vote_average.toFixed(1) ?? "—") : "—"}</span>
         </div>
       </div>
 

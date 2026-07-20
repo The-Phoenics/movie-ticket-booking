@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/components/auth-provider";
+import { useAuth } from "@/components/providers/auth-provider";
 import { useMoviesList } from "@/hooks/use-movies-list";
-import { HeroHeader } from "@/components/movies/hero-header";
-import { SortFiltersPanel } from "@/components/movies/sort-filters-panel";
-import { ResultsMeta } from "@/components/movies/results-meta";
-import { MovieGrid } from "@/components/movies/movie-grid";
+import { HeroHeader } from "@/components/movie/hero-header";
+import { SortFiltersPanel } from "@/components/movie/sort-filters-panel";
+import { ResultsMeta } from "@/components/movie/results-meta";
+import { MovieGrid } from "@/components/movie/movie-grid";
 
 export default function MoviesPage() {
   const auth = useAuth();

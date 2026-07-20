@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { Fraunces, Archivo, JetBrains_Mono } from "next/font/google";
 
 import "../index.css";
-import Providers from "@/components/providers";
-import HeaderBar from "@/components/header-bar";
+import Providers from "@/components/providers/providers";
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
@@ -42,10 +41,7 @@ export default function RootLayout({
       <body className={`${fraunces.variable} ${archivo.variable} ${jetbrainsMono.variable} antialiased`}>
         <Providers>
           <div className="flex justify-center items-center">
-            <div className="w-full">
-              <HeaderBar />
-              {children}
-            </div>
+            <div className="w-full">{children}</div>
           </div>
         </Providers>
       </body>

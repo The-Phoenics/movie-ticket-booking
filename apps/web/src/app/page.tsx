@@ -1,12 +1,19 @@
+"use client"
+
 import Link from "next/link";
 import type { Route } from "next";
+import { useAuth } from "@/components/providers/auth-provider";
+import { redirect } from "next/navigation";
 
 export default function HomePage() {
+  const session = useAuth()
+  if (session && session.user) redirect("/movies")
+
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-zinc-950 text-zinc-50">
       {/* Background */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-zinc-900 via-zinc-950 to-black" />
-      <div className="pointer-events-none absolute left-1/2 top-[-160px] h-[460px] w-[800px] -translate-x-1/2 rounded-full bg-red-600/15 blur-3xl" />
+      <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-zinc-900 via-zinc-950 to-black" />
+      <div className="pointer-events-none absolute left-1/2 -top-40 h-115 w-200 -translate-x-1/2 rounded-full bg-red-600/15 blur-3xl" />
 
       {/* ── Nav ── */}
       <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-7">
@@ -43,7 +50,7 @@ export default function HomePage() {
         </Link>
 
         {/* Signature: ticket-tear divider */}
-        <div className="mt-14 flex w-full max-w-[220px] items-center gap-2" aria-hidden="true">
+        <div className="mt-14 flex w-full max-w-55 items-center gap-2" aria-hidden="true">
           <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white/15" />
           <span className="flex-1 border-t border-dashed border-white/15" />
           <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white/15" />

@@ -3,12 +3,13 @@ import type { Movie, Show } from "@movie-ticket-booking/shared/types";
 import { useQuery } from "@tanstack/react-query";
 
 export interface TheatreActiveShowsResponse {
-  data: (Show & {
-    movie: Movie
-  })[];
+  data: {
+    movie: Movie,
+    shows: Show[]
+  }[]
 }
 
-async function getTheatreActiveShows(theatreId: string) {
+async function getActiveShows(theatreId: string) {
   try {
     const url = `${env.NEXT_PUBLIC_SERVER_URL}/owner/${theatreId}/shows`;
     const res = await fetch(url, {
@@ -27,7 +28,7 @@ async function getTheatreActiveShows(theatreId: string) {
 export function useTheatreActiveShows(theatreId?: string) {
   return useQuery({
     queryKey: ["get-theatre-active-shows", theatreId],
-    queryFn: () => getTheatreActiveShows(theatreId!),
+    queryFn: () => getActiveShows(theatreId!),
     enabled: !!theatreId,
     select: (res: TheatreActiveShowsResponse) => res.data,
   });

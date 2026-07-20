@@ -3,10 +3,9 @@
 import { Star, MapPin, Clock, CalendarDays } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
-import { useMovieWithTimings, type DatesWithTheatreTimings } from "./query";
 import { formatDatePillParts, formatTime } from "@/lib/utils";
 import type { Movie } from "@movie-ticket-booking/shared/types";
-import { useMovie } from "./add/query";
+import { useMovieWithTimings, type DatesWithTheatreTimings } from "@/hooks/query/useMovieWithTimings";
 
 export default function MoviePage() {
   const params = useParams<{ movieId: string }>();

@@ -13,7 +13,7 @@ export default function ErrorComponent({ message, link = null, linkText = null }
       {link && (
         <Link
           href={link}
-          className="border hover:border-2 transition-all duration-75 shadow-[2px] hover:shadow-[4px] shadow-gray-400 px-4 py-1.5 hover:cursor-pointer text-sm text-gray-400 rounded-md"
+          className="bg-[#2d050c] border-2 hover:brightness-110 transition-all duration-150 shadow-[2px] hover:shadow-[4px] shadow-gray-400 px-4 py-1.5 hover:cursor-pointer text-sm text-[#d75857] rounded-md"
         >
           {linkText}
         </Link>

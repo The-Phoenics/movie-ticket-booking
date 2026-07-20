@@ -52,9 +52,7 @@ export function useMoviesList() {
   useEffect(() => {
     if (!isSearching) return;
     const searchedMovies = moviesSearchQuery.data?.data.movies ?? [];
-    const sorted = [...searchedMovies].sort((a, b) =>
-      a.release_date > b.release_date ? 1 : a.release_date < b.release_date ? -1 : 0,
-    );
+    const sorted = [...searchedMovies].sort((a, b) => b.vote_average - a.vote_average + (b.popularity - a.popularity));
     setMovies(sorted);
   }, [moviesSearchQuery.data, isSearching]);
 

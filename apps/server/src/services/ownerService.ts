@@ -81,6 +81,6 @@ export async function addMovieToTheatre(
     return theatreMovie;
   } catch (err) {
     console.log(err);
-    throw new ServerApiError("DB Error: Failed to add movie to theatre", 401);
+    throw new ServerApiError("DB Error: Failed to add movie to theatre", 500);
   }
 }

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LogOut, User, ChevronDown, Film, ChartBarIcon, Armchair } from "lucide-react";
+import { LogOut, User, ChevronDown, Film, ChartBarIcon, Armchair, Popcorn, Clapperboard } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { useState, useRef, useEffect } from "react";
 import type { Route } from "next";
@@ -112,14 +112,32 @@ export default function UserMenu() {
               Browse Movies
             </Link>
             {(user.role === "OWNER" || user.role === "ADMIN") && (
-              <Link
-                href={"/dashboard/seats" as Route}
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-800 hover:text-zinc-100"
-              >
-                <Armchair className="h-4 w-4 text-zinc-500" />
-                Manage Seats
-              </Link>
+              <>
+                <Link
+                  href={"/dashboard/seats" as Route}
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-800 hover:text-zinc-100"
+                >
+                  <Armchair className="h-4 w-4 text-zinc-500" />
+                  Manage Seats
+                </Link>
+                <Link
+                  href={"/dashboard/seats" as Route}
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-800 hover:text-zinc-100"
+                >
+                  <Film className="h-4 w-4 text-zinc-500" />
+                  Create Show
+                </Link>
+                <Link
+                  href={"/dashboard/shows" as Route}
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-800 hover:text-zinc-100"
+                >
+                  <Clapperboard className="h-4 w-4 text-zinc-500" />
+                  Active Shows
+                </Link>
+              </>
             )}
           </div>
 

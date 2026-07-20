@@ -4,22 +4,22 @@ import prisma from "@movie-ticket-booking/db";
 export async function getTheatreActiveShows(theatreId: string) {
   try {
     const currDate = new Date();
-    const theatreShows = await prisma.show.findMany({
+    const movieShows = await prisma.movie.findMany({
       where: {
-        theatreId: theatreId,
-        startTime: {
-          gte: currDate,
+        shows: {
+          some: {
+            theatreId: theatreId,
+            startTime: {
+              gte: currDate, // get active shows
+            },
+          },
         },
       },
-      orderBy: {
-        startTime: "asc",
-      },
       include: {
-        movie: true,
-      },
+        shows: true
+      }
     });
-    console.log("theatreShows", theatreShows.length);
-    return theatreShows;
+    return movieShows;
   } catch (error) {
     throw new ServerApiError("DB Error: Faild to fetch theatre active shows", 500, error);
   }

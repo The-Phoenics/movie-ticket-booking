@@ -2,15 +2,18 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { useAuth } from "@/components/auth-provider";
+import { useAuth } from "@/components/providers/auth-provider";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import type { Seat, Theatre } from "@movie-ticket-booking/shared/types";
 import { cn } from "@/lib/utils";
-import { updateTheatreSeatLayout, useTheatreSeatsLayout, useTheatre } from "./query";
 import ErrorComponent from "@/components/error";
+import { useTheatre } from "@/hooks/query/useTheatre";
+import { useTheatreSeatsLayout } from "@/hooks/query/useTheatreSeatsLayout";
+import { useTheatreSeatsLayoutMtn } from "@/hooks/mutation/useTheatreSeatsLayoutMtn";
 
-type SeatStatus = "available" | "unavailable";
+export type SeatStatus = "available" | "unavailable";
+export type SeatStatusMap = Map<string, SeatStatus>;
 export type TheatreSeat = Pick<Seat, "row" | "col"> & { status: SeatStatus };
 
 /** Spreadsheet-style row naming: A, B, ... Z, AA, AB, ... */
@@ -43,7 +46,7 @@ function ManageSeatsPage() {
   // Locally-editable layout state, seeded from the server data.
   const [rows, setRows] = useState<string[]>([]);
   const [maxCols, setMaxCols] = useState(0);
-  const [seatStatus, setSeatStatus] = useState<Map<string, SeatStatus>>(new Map());
+  const [seatStatus, setSeatStatus] = useState<SeatStatusMap>(new Map());
   const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
@@ -52,7 +55,7 @@ function ManageSeatsPage() {
     }
   }, [session, router]);
 
-  const theatreQuery = useTheatre(session)
+  const theatreQuery = useTheatre(session);
   const seatsQuery = useTheatreSeatsLayout(theatreQuery.data?.id);
 
   // Build the full grid (rows x cols) from the seats the API returned, filling
@@ -78,18 +81,7 @@ function ManageSeatsPage() {
     setIsDirty(false);
   }, [seatsQuery.data]);
 
-  const updateSeatsMutation = useMutation({
-    mutationFn: () => {
-      const seats: TheatreSeat[] = Array.from(seatStatus.entries()).map(([key, status]) => {
-        const [row, col] = key.split("::");
-        return { row, col: Number(col), status };
-      });
-      return updateTheatreSeatLayout(theatreQuery.data!.id, seats);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["theatre-seats"] });
-    },
-  });
+  const updateSeatsMutation = useTheatreSeatsLayoutMtn(theatreQuery.data?.id!, seatStatus);
 
   function toggleSeat(row: string, col: number) {
     setSeatStatus((prev) => {
@@ -148,16 +140,12 @@ function ManageSeatsPage() {
 
   if (theatreQuery.isPending) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#09090b] text-sm text-zinc-500">
-        Loading theatre…
-      </div>
+      <div className="grid min-h-screen place-items-center bg-[#09090b] text-sm text-zinc-500">Loading theatre…</div>
     );
   }
 
   if (theatreQuery.isError) {
-    return (
-      <ErrorComponent message={theatreQuery.error.message} />
-    );
+    return <ErrorComponent message={theatreQuery.error.message} />;
   }
 
   const totalSeats = Array.from(seatStatus.values()).filter((s) => s === "available").length;
@@ -168,11 +156,7 @@ function ManageSeatsPage() {
       <div className="absolute -z-10 inset-0 bg-[linear-gradient(160deg,#18181b_0%,#09090b_60%,#0a0a12_100%)]" />
       <div className="absolute -z-10 -top-30 left-1/2 -translate-x-1/2 w-175 h-100 bg-[radial-gradient(ellipse,rgba(220,38,38,0.16)_0%,transparent_70%)] pointer-events-none" />
 
-      <TheatreDetailsComponent
-        theatre={theatreQuery.data}
-        totalSeats={totalSeats}
-        totalRows={totalRows}
-      />
+      <TheatreDetailsComponent theatre={theatreQuery.data} totalSeats={totalSeats} totalRows={totalRows} />
 
       <div className="w-full px-4 py-6">
         <Screen />
@@ -183,21 +167,14 @@ function ManageSeatsPage() {
         </div>
 
         <div className="mt-6">
-          {seatsQuery.isPending && (
-            <p className="text-center text-sm text-zinc-500">Loading seats…</p>
-          )}
+          {seatsQuery.isPending && <p className="text-center text-sm text-zinc-500">Loading seats…</p>}
           {seatsQuery.isError && (
             <p className="text-center text-sm text-red-400">
               Couldn't load the seat layout. {seatsQuery.error.message}
             </p>
           )}
           {seatsQuery.isSuccess && (
-            <SeatsComponent
-              rows={rows}
-              maxCols={maxCols}
-              seatStatus={seatStatus}
-              onToggle={toggleSeat}
-            />
+            <SeatsComponent rows={rows} maxCols={maxCols} seatStatus={seatStatus} onToggle={toggleSeat} />
           )}
         </div>
       </div>
@@ -244,9 +221,7 @@ function TheatreDetailsComponent({
   return (
     <div className="border-b border-zinc-800/80 px-4 py-8">
       <div className="mx-auto max-w-2xl">
-        <span className="text-[11px] font-medium uppercase tracking-[0.3em] text-red-500/80">
-          Manage seats
-        </span>
+        <span className="text-[11px] font-medium uppercase tracking-[0.3em] text-red-500/80">Manage seats</span>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-50">{theatre.title}</h1>
         {theatre.address && <p className="mt-1 text-sm text-zinc-500">{theatre.country}</p>}
         <div className="mt-5 flex gap-6 text-sm">
@@ -334,16 +309,14 @@ function SeatsComponent({
 }: {
   rows: string[];
   maxCols: number;
-  seatStatus: Map<string, SeatStatus>;
+  seatStatus: SeatStatusMap;
   onToggle: (row: string, col: number) => void;
 }) {
   if (rows.length === 0 || maxCols === 0) {
     return (
       <div className="mx-auto max-w-sm py-16 text-center">
         <p className="text-sm font-medium text-zinc-300">No layout yet</p>
-        <p className="mt-1 text-sm text-zinc-500">
-          Add a row and a column above to start building the seat map.
-        </p>
+        <p className="mt-1 text-sm text-zinc-500">Add a row and a column above to start building the seat map.</p>
       </div>
     );
   }
@@ -352,9 +325,7 @@ function SeatsComponent({
     <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-2.5 pt-4 pb-8">
       {rows.map((row) => (
         <div key={row} className="flex w-full items-center justify-center gap-3">
-          <span className="w-4 shrink-0 text-center text-xs font-semibold text-zinc-500">
-            {row}
-          </span>
+          <span className="w-4 shrink-0 text-center text-xs font-semibold text-zinc-500">{row}</span>
           <div className="flex flex-wrap justify-center gap-2">
             {Array.from({ length: maxCols }).map((_, idx) => {
               const col = idx + 1;

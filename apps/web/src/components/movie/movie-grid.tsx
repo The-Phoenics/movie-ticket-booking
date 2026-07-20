@@ -1,8 +1,9 @@
 "use client";
 
 import { Clapperboard, Search } from "lucide-react";
-import MovieCard, { MovieCardSkeleton } from "@/components/movie-card";
+import MovieCard, { MovieCardSkeleton } from "@/components/movie/movie-card";
 import type { TMDBMoviesType, User } from "@movie-ticket-booking/shared/types";
+import type { ClientSessionUser } from "../providers/auth-provider";
 
 export function MovieGrid({
   movies,
@@ -16,7 +17,7 @@ export function MovieGrid({
   isPending: boolean;
   isError: boolean;
   search: string;
-  user: User;
+  user: ClientSessionUser;
   onShowAll: () => void;
 }) {
   if (isPending) {

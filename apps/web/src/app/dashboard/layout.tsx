@@ -6,6 +6,7 @@ import type { Route } from "next";
 import { usePathname } from "next/navigation";
 import { Film, Clapperboard, Armchair, Popcorn, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import HeaderBar from "@/components/header-bar";
 
 const navItems = [
   { label: "Movies", href: "/dashboard/movies", icon: Film },
@@ -17,10 +18,12 @@ export default function OwnerDashboardLayout({ children }: { children: React.Rea
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-[#09090b] text-[#fafafa]">
-      <DashboardSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
-      <DashboardContent>{children}</DashboardContent>
-    </div>
+    <HeaderBar>
+      <div className="flex min-h-screen bg-[#09090b] text-[#fafafa]">
+        <DashboardSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
+        <DashboardContent>{children}</DashboardContent>
+      </div>
+    </HeaderBar>
   );
 }
 
@@ -49,11 +52,14 @@ function DashboardSidebar({ collapsed, onToggle }: { collapsed: boolean; onToggl
 
       {/* Nav */}
       <nav className="flex-1 px-2 py-5">
-          <p className={cn("mb-4 px-2 pl-12 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600",
-            collapsed && "invisible"
-          )}>
-            Manage
-          </p>
+        <p
+          className={cn(
+            "mb-4 px-2 pl-12 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600",
+            collapsed && "invisible",
+          )}
+        >
+          Manage
+        </p>
         <ul className="flex flex-col gap-2">
           {navItems.map(({ label, href, icon: Icon }) => {
             const isActive = pathname === href || pathname.startsWith(`${href}/`);

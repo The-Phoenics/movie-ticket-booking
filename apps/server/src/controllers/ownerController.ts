@@ -5,6 +5,7 @@ import { apiJsonResponse, isValidDateInstance } from "@/utils";
 import prisma from "@movie-ticket-booking/db";
 import type { NextFunction, Request, Response } from "express";
 import { getTheatreActiveShows } from "@/services/showService";
+import type { Show, TMDBMovieType } from "@movie-ticket-booking/shared/types";
 
 export async function createTheatreContoller(req: Request, res: Response, next: NextFunction) {
   try {
@@ -99,6 +100,11 @@ export async function addMovieToTheatreController(req: Request, res: Response, n
   }
 }
 
+type MovieShowWithTimings = {
+  movie: TMDBMovieType;
+  shows: Show[];
+};
+
 export async function getShowController(req: Request, res: Response, next: NextFunction) {
   // TODO: create a valiate theatre request reusable function to verify if theatre is valid or not
   const theatreId = req.params.theatreId as string;
@@ -108,8 +114,20 @@ export async function getShowController(req: Request, res: Response, next: NextF
 
   try {
     const activeShows = await getTheatreActiveShows(theatreId);
+
+    // tranform
+    let activeShowsDto: MovieShowWithTimings[] = [];
+    activeShows.forEach((movieShow) => {
+      const { shows, tmdbMovieId, id, ...movie } = movieShow;
+      const movieShowObj = {
+        movie: { id: tmdbMovieId, ...movie },
+        shows: shows,
+      } as unknown as MovieShowWithTimings;
+      activeShowsDto.push(movieShowObj);
+    });
+
     if (!activeShows) res.status(404).json(apiJsonResponse(false, null, "Invalid theatre id"));
-    res.status(200).json(apiJsonResponse(true, activeShows, "Successfully fetched movies"));
+    res.status(200).json(apiJsonResponse(true, activeShowsDto, "Successfully fetched movies"));
   } catch (err) {
     next(err);
   }

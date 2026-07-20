@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { env } from "@movie-ticket-booking/env/web";
-import SelectTheatreMovieSeat from "@/components/SelectSeatComponent";
-import BuyTheatreMovieSeat from "@/components/BuySeatComponent";
+import SelectTheatreMovieSeat from "@/components/select-seat-component";
+import BuyTheatreMovieSeat from "@/components/buy-seat-component";
 
 type SeatStatus = "AVAILABLE" | "SOLD";
 

@@ -1,31 +1,23 @@
 "use client";
 
-import { useAuth } from "@/components/auth-provider";
+import { useAuth } from "@/components/providers/auth-provider";
 import type { Seat, Theatre } from "@movie-ticket-booking/shared/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import type { Route } from "next";
 import { useEffect, useMemo, useState } from "react";
-import { addMovieShowToTheatre, useMovie } from "./query";
-import { MovieSummary } from "@/components/movie-details";
+import { MovieSummary } from "@/components/movie/movie-details";
 import { ShowtimeForm, type ShowtimeFormValues } from "./components/show-time-form";
 import { SeatPicker } from "./components/seat-picker";
-import { toast } from "sonner";
-import { isValidDate } from "@/lib/utils";
-import { set } from "date-fns";
-import { useTheatre, useTheatreSeatsLayout } from "@/app/dashboard/seats/query";
-import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import ErrorComponent from "@/components/error";
-
-function seatKey(row: string, col: number) {
-  return `${row}::${col}`;
-}
+import { useTheatre } from "@/hooks/query/useTheatre";
+import { useTheatreSeatsLayout } from "@/hooks/query/useTheatreSeatsLayout";
+import { useMovie } from "@/hooks/query/useMovie";
+import { useAddShowtimeMtn } from "@/hooks/mutation/useAddShowtimeMtn";
 
 export default function AddMovieToTheatrePage() {
   const session = useAuth();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const params = useParams<{ movieId: string }>();
   const movieId = params.movieId;
 
@@ -40,6 +32,7 @@ export default function AddMovieToTheatrePage() {
   const movieQuery = useMovie(movieId);
   const theatreQuery = useTheatre(session);
   const theatreSeatsLayout = useTheatreSeatsLayout(theatre?.id);
+  const addShowtimeMutation = useAddShowtimeMtn(theatre!, movieId, showtime);
 
   useEffect(() => {
     if (!session) {
@@ -59,42 +52,6 @@ export default function AddMovieToTheatrePage() {
 
   const rows = useMemo(() => Array.from(new Set(seats.map((s) => s.row))).sort(), [seats]);
   const maxCols = useMemo(() => seats.reduce((max, s) => Math.max(max, s.col), 0), [seats]);
-
-  const addShowtimeMutation = useMutation({
-    mutationFn: () => {
-      if (!theatre) throw new Error("No theatre selected");
-      let showDateTime = new Date(showtime.date);
-      if (!isValidDate(showDateTime)) {
-        throw Error("Invalid date");
-      }
-      const startTimeString = showtime.time.split(":");
-      const hoursStr = startTimeString[0];
-      const minutesStr = startTimeString[1];
-      const hours = Number(hoursStr);
-      const minutes = Number(minutesStr);
-
-      if (isNaN(hours) || hours > 24 || isNaN(minutes) || minutes > 60) {
-        throw Error("Invalid time");
-      }
-
-      showDateTime = set(showDateTime, {
-        hours: hours,
-        minutes: minutes,
-      });
-      return addMovieShowToTheatre(theatre.id, movieId, {
-        time: showDateTime,
-        price: Number(showtime.price),
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["theatre-showtimes"] });
-    },
-    onError: (error: { error: { message?: string } }) => {
-      console.log("err:", error.error.message);
-      toast.error(error.error.message || "Failed to add movie to theatre.");
-    },
-  });
-
   const isFormValid = showtime.date.length > 0 && showtime.time.length > 0 && Number(showtime.price) > 0;
 
   if (!session) return null;
