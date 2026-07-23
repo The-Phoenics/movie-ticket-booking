@@ -163,7 +163,7 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
         );
       }
       // if reserved for another user return not available
-      return res.status(200).json(apiJsonResponse(false, {}, "Seat not available right now", 200));
+      return res.status(200).json(apiJsonResponse(false, {}, "Seat not available right now", null));
     }
 
     // call reserve seat service
@@ -171,22 +171,10 @@ export async function reserveMovieSeatController(req: Request, res: Response, ne
 
     // if seat couldn't be resesrved - gets reserved for another user -> return seat not available
     if (!reservationSuccess) {
-      return res.status(200).json(
-        apiJsonResponse(
-          true,
-          {
-            reservation: {
-              reservedFor: customer,
-            },
-          },
-          "Seat already reserved for the user",
-          200,
-        ),
-      );
+      return res.status(409).json(apiJsonResponse(true, null, "Seat already reserved for the user", 409));
     }
 
-    // seat breserved successfully
-    // update redis
+    // seat reserved successfully then update redis
     const expirationTime = minutesToSeconds(SEAT_RESERVATION_DURATION);
     await redisClient.set(key, customer.id, "EX", expirationTime, "NX");
 
