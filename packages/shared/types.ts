@@ -90,7 +90,7 @@ export interface TMDBMoviesType {
   vote_average: number;
 }
 
-export type ServerApiResponseShape<E = Error, D = any> = {
+export type ServerApiResponseShape<D = any, E = Error> = {
   data: D;
   message: string;
   error: E;

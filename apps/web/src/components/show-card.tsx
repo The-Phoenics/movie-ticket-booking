@@ -55,7 +55,7 @@ export default function ShowCard({ movie, shows, user }: { movie: Movie; shows: 
                 }}
                 className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm font-medium text-red-400 transition hover:bg-red-500 hover:text-white"
               >
-                <span className="mr-1">{format(new Date(show.startTime), "MMMM d, yyyy")}</span>
+                <span className="mr-1">{format(new Date(show.startTime), "MMMM dd, yyyy")}</span>
                 <span className="mr-1">—</span>
                 <span>
                   {new Date(show.startTime).toLocaleTimeString([], {

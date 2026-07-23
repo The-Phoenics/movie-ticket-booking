@@ -16,8 +16,18 @@ export async function getTheatreActiveShows(theatreId: string) {
         },
       },
       include: {
-        shows: true
-      }
+        shows: {
+          where: {
+            theatreId: theatreId,
+            startTime: {
+              gte: currDate,
+            },
+          },
+          orderBy: {
+            startTime: "asc",
+          },
+        },
+      },
     });
     return movieShows;
   } catch (error) {

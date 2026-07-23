@@ -9,8 +9,9 @@ function createRedisClient() {
   });
 
   redis.on("error", (err) => {
-    console.log("Cache: connection error occured:", err);
-    throw Error("Failed to connect to redis server");
+    console.error("Cache: Redis error occured:", err);
+    process.exit(1)
+    // throw Error("Failed to connect to redis server");
   });
 
   redis.on("connect", () => {

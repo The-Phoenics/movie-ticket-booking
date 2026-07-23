@@ -13,13 +13,11 @@ export function createPrismaClient() {
 async function checkConnection(prisma: PrismaClient) {
   try {
     await prisma.$queryRaw`SELECT 1`;
-    console.log('DB: Database connected successfully!');
+    console.log("DB: Database connected successfully!");
     return true;
   } catch (error) {
-    console.error('DB: Database connection failed. Make sure db server is running.');
-    return false;
-  } finally {
-    await prisma.$disconnect();
+    console.error("DB: Database connection failed. Make sure db server is running.");
+    process.exit(1);
   }
 }
 

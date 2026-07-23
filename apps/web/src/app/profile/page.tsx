@@ -1,48 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
-import { env } from "@movie-ticket-booking/env/web";
-import { toast } from "sonner";
-import {
-  User,
-  Building2,
-  Mail,
-  MapPin,
-  Tag,
-  Loader2,
-  Save,
-  ArrowLeft,
-  Film,
-} from "lucide-react";
+import { Building2, Mail, MapPin, Tag, Loader2, Save, ArrowLeft, Film } from "lucide-react";
 import Link from "next/link";
 import type { Route } from "next";
-
-interface CustomerProfile {
-  id: string;
-  name: string;
-}
-
-interface TheatreProfile {
-  id: string;
-  title: string;
-  address: string;
-  city: string;
-  country: string;
-}
-
-interface ProfileData {
-  user: {
-    id: string;
-    email: string;
-    name: string | null;
-    role: "CUSTOMER" | "BUSINESS";
-    isOnboarded: boolean;
-    customer: CustomerProfile | null;
-    theatre: TheatreProfile | null;
-  };
-}
+import {
+  useProfileMtn,
+  type CustomerProfile,
+  type ProfileData,
+  type TheatreProfile,
+} from "@/hooks/mutation/useProfileMtn";
+import { useProfile } from "@/hooks/query/useProfile";
+import ErrorComponent from "@/components/error";
+import { useAuth } from "@/components/providers/auth-provider";
 
 function Field({
   label,
@@ -65,10 +35,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label
-        htmlFor={id}
-        className="text-xs font-medium uppercase tracking-wide text-zinc-500"
-      >
+      <label htmlFor={id} className="text-xs font-medium uppercase tracking-wide text-zinc-500">
         {label}
       </label>
       <div className="relative">
@@ -135,11 +102,7 @@ function CustomerProfileForm({
         disabled={isSaving || !isDirty || !name.trim() || !emailVal.trim()}
         className="flex items-center hover:cursor-pointer mt-4 gap-2 rounded-xl bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-900/40 transition-all hover:bg-red-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400 disabled:shadow-none"
       >
-        {isSaving ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Save className="h-4 w-4" />
-        )}
+        {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
         {isSaving ? "Saving…" : "Save Changes"}
       </button>
     </form>
@@ -154,13 +117,7 @@ function BusinessProfileForm({
 }: {
   profile: TheatreProfile;
   email: string;
-  onSave: (data: {
-    email: string;
-    title: string;
-    address: string;
-    city: string;
-    country: string;
-  }) => void;
+  onSave: (data: { email: string; title: string; address: string; city: string; country: string }) => void;
   isSaving: boolean;
 }) {
   const [emailVal, setEmailVal] = useState(email);
@@ -176,12 +133,7 @@ function BusinessProfileForm({
     city !== profile.city ||
     country !== profile.country;
 
-  const isValid =
-    emailVal.trim() &&
-    title.trim() &&
-    address.trim() &&
-    city.trim() &&
-    country.trim();
+  const isValid = emailVal.trim() && title.trim() && address.trim() && city.trim() && country.trim();
 
   return (
     <form
@@ -217,31 +169,15 @@ function BusinessProfileForm({
         icon={MapPin}
       />
       <div className="grid grid-cols-2 gap-3">
-        <Field
-          label="City"
-          id="theatre-city"
-          value={city}
-          onChange={setCity}
-          placeholder="Mumbai"
-        />
-        <Field
-          label="Country"
-          id="theatre-country"
-          value={country}
-          onChange={setCountry}
-          placeholder="India"
-        />
+        <Field label="City" id="theatre-city" value={city} onChange={setCity} placeholder="Mumbai" />
+        <Field label="Country" id="theatre-country" value={country} onChange={setCountry} placeholder="India" />
       </div>
       <button
         type="submit"
         disabled={isSaving || !isDirty || !isValid}
         className="flex items-center gap-2 rounded-xl bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-900/40 transition-all hover:bg-red-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400 disabled:shadow-none"
       >
-        {isSaving ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Save className="h-4 w-4" />
-        )}
+        {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
         {isSaving ? "Saving…" : "Save Changes"}
       </button>
     </form>
@@ -249,79 +185,26 @@ function BusinessProfileForm({
 }
 
 export default function ProfilePage() {
-  const router = useRouter();
-  const { data: session, isPending: sessionPending } = authClient.useSession();
-
+  const session = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    if (sessionPending) return;
-    if (!session) {
-      router.replace("/auth" as Route);
-      return;
-    }
-
-    fetch(`${env.NEXT_PUBLIC_SERVER_URL}/profile`, { credentials: "include" })
-      .then((r) => r.json())
-      .then((json) => {
-        if (json.success) setProfile(json.data);
-        else toast.error("Failed to load profile");
-      })
-      .catch(() => toast.error("Failed to load profile"))
-      .finally(() => setIsLoading(false));
-  }, [sessionPending, session]);
+  const userProfile = useProfile(session);
+  const updateProfileMutation = useProfileMtn(() => {
+    setIsSaving(false);
+  });
 
   const handleSave = async (data: Record<string, string>) => {
     setIsSaving(true);
-    try {
-      const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/profile`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(data),
-      });
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        toast.error(json.message || "Update failed");
-      } else {
-        toast.success("Profile updated!");
-        // Refresh local profile state with new values
-        setProfile((prev) =>
-          prev
-            ? {
-                user: {
-                  ...prev.user,
-                  email: data.email ?? prev.user.email,
-                  customer: prev.user.customer
-                    ? {
-                        ...prev.user.customer,
-                        name: data.name ?? prev.user.customer.name,
-                      }
-                    : null,
-                  theatre: prev.user.theatre
-                    ? {
-                        ...prev.user.theatre,
-                        title: data.title ?? prev.user.theatre.title,
-                        address: data.address ?? prev.user.theatre.address,
-                        city: data.city ?? prev.user.theatre.city,
-                        country: data.country ?? prev.user.theatre.country,
-                      }
-                    : null,
-                },
-              }
-            : prev,
-        );
-      }
-    } catch {
-      toast.error("Something went wrong");
-    } finally {
-      setIsSaving(false);
-    }
+    updateProfileMutation.mutate(data);
   };
 
-  if (sessionPending || isLoading) {
+  useEffect(() => {
+    console.log(userProfile.data);
+    setProfile(userProfile.data);
+  }, [userProfile.data]);
+
+  if (!profile || userProfile.isPending) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-zinc-500" />
@@ -329,17 +212,20 @@ export default function ProfilePage() {
     );
   }
 
-  if (!profile) return null;
+  if (userProfile.isError || !userProfile.data) {
+    return <ErrorComponent message={userProfile.error?.message ?? "Failed to load user profile"} />;
+  }
 
-  const { user } = profile;
-  if (!user) return null; // TODO:CURRENT - Not working
-  const isCustomer = user.role === "CUSTOMER";
-  const initials = (user.name ?? user.email)
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  const user = profile;
+  const isCustomer = user && user.role === "CUSTOMER";
+  const initials =
+    user &&
+    (user.name ?? user.email)
+      .split(" ")
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -374,9 +260,7 @@ export default function ProfilePage() {
             {initials}
           </div>
           <div className="flex">
-            <h1 className="text-2xl font-bold text-zinc-100">
-              {isCustomer ? user.customer?.name : user.theatre?.title}
-            </h1>
+            <h1 className="text-2xl font-bold text-zinc-100">{isCustomer ? user.customer?.name : ""}</h1>
           </div>
         </div>
 
@@ -389,32 +273,18 @@ export default function ProfilePage() {
             </h2>
 
             {isCustomer && user.customer && (
-              <CustomerProfileForm
-                profile={user.customer}
-                email={user.email}
-                onSave={handleSave}
-                isSaving={isSaving}
-              />
+              <CustomerProfileForm profile={user.customer} email={user.email} onSave={handleSave} isSaving={isSaving} />
             )}
 
             {!isCustomer && user.theatre && (
-              <BusinessProfileForm
-                profile={user.theatre}
-                email={user.email}
-                onSave={handleSave}
-                isSaving={isSaving}
-              />
+              <BusinessProfileForm profile={user.theatre} email={user.email} onSave={handleSave} isSaving={isSaving} />
             )}
 
             {isCustomer && !user.customer && (
-              <p className="text-sm text-zinc-500">
-                No customer profile found. Please complete onboarding.
-              </p>
+              <p className="text-sm text-zinc-500">No customer profile found. Please complete onboarding.</p>
             )}
             {!isCustomer && !user.theatre && (
-              <p className="text-sm text-zinc-500">
-                No theatre profile found. Please complete onboarding.
-              </p>
+              <p className="text-sm text-zinc-500">No theatre profile found. Please complete onboarding.</p>
             )}
           </div>
         </div>
