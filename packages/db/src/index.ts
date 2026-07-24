@@ -21,6 +21,16 @@ async function checkConnection(prisma: PrismaClient) {
   }
 }
 
+export async function clearDatabase() {
+  const propertyNames = Object.getOwnPropertyNames(prisma);
+  const modelNames = propertyNames.filter((name) => !name.startsWith("_") && !name.startsWith("$"));
+
+  for (const modelName of modelNames) {
+    // Map your model name to its actual lower-case/snake-case database table name if needed
+    await prisma.$executeRawUnsafe(`TRUNCATE TABLE "${modelName}" RESTART IDENTITY CASCADE;`);
+  }
+}
+
 const prisma = createPrismaClient();
 checkConnection(prisma);
 export default prisma;

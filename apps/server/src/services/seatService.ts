@@ -56,10 +56,7 @@ export async function deleteSeatsBulk(seats: Seat[], theatreId: string): Promise
   }
 }
 
-export async function reserveTheatreMovieSeat(
-  customerId: string,
-  showSeatId: string,
-): Promise<boolean> {
+export async function reserveTheatreMovieSeat(customerId: string, showSeatId: string): Promise<boolean> {
   try {
     const result = await prisma.$transaction(async (tx) => {
       const seat = await tx.showSeat.findUnique({
@@ -71,16 +68,17 @@ export async function reserveTheatreMovieSeat(
         return false;
       }
 
-      const updatedResult = await tx.showSeat.update({
+      const updatedResult = await tx.showSeat.updateMany({
         where: {
           id: showSeatId,
+          status: "AVAILABLE",
         },
         data: {
           status: "SOLD",
         },
       });
       // optimistic approach
-      if (!updatedResult) {
+      if (!updatedResult || updatedResult.count !== 1) {
         return false;
       }
 
@@ -142,10 +140,6 @@ export async function updateTheatreMovieSeatExpiredReservation(
       seatsUpdated: result.count,
     };
   } catch (err) {
-    throw new ServerApiError(
-      "DB Error: Failed to update theatre movie expired reservation seats status",
-      500,
-      err,
-    );
+    throw new ServerApiError("DB Error: Failed to update theatre movie expired reservation seats status", 500, err);
   }
 }

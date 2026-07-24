@@ -1,38 +1,61 @@
 import { faker } from "@faker-js/faker";
+import { auth } from "@movie-ticket-booking/auth";
 import prisma from "@movie-ticket-booking/db";
-import type { Customer, User } from "@movie-ticket-booking/shared/types";
+import type { Customer, Session, User } from "@movie-ticket-booking/shared/types";
 
-// create users and customers
-export async function createTestCustomers(count: number = 20) {
-  try {
-    const users = [];
-    for (let i = 1; i <= count; i++) {
-      const user: Omit<User, "id" | "createdAt" | "updatedAt"> = {
+type TestCustomer = {
+  user: User;
+  customer: Customer;
+  session: Session;
+  sessionToken: string;
+  headers: Headers;
+};
+
+const DEFAULT_PASSWORD = "password";
+
+export async function createUsers(count: number = 20): Promise<TestCustomer[]> {
+  const ctx = await auth.$context;
+  const test = ctx.test;
+
+  const customers = await Promise.all(
+    Array.from({ length: count }).map(async () => {
+      const password = DEFAULT_PASSWORD;
+      const hashedPassword = await ctx.password.hash(password);
+
+      const userData = {
         email: faker.internet.email(),
         name: faker.person.fullName(),
-        isOnboarded: true,
         role: "CUSTOMER",
         emailVerified: true,
+        isOnboarded: true,
       };
-      users.push(user);
-    }
+      const createdUser = test.createUser(userData);
+      const savedUser = await test.saveUser(createdUser);
+      const user = { ...savedUser, ...userData };
 
-    const dbUsers = await prisma.user.createManyAndReturn({
-      data: users,
-    });
-    const customers: Omit<Customer, "id">[] = [];
-    dbUsers.forEach((u) => {
-      const customer: Omit<Customer, "id"> = {
-        name: u.name ?? "test-username",
-        userId: u.id,
-      };
-      customers.push(customer);
-    });
-    const dbCustomers = await prisma.customer.createManyAndReturn({
-      data: customers,
-    });
-    return dbCustomers;
-  } catch (err) {
-    throw new Error(`Failed to seed ${count} customers!`);
-  }
+      const { session, headers, cookies, token } = await test.login({
+        userId: savedUser.id,
+      });
+
+      // credential Account row — required for email/password sign-in
+      await prisma.account.create({
+        data: {
+          userId: savedUser.id,
+          accountId: savedUser.id,
+          providerId: "credential",
+          password: hashedPassword,
+        },
+      });
+
+      const customer = await prisma.customer.create({
+        data: {
+          userId: savedUser.id,
+          name: savedUser.name,
+        },
+      });
+
+      return { user, headers, customer, session, sessionToken: token };
+    }),
+  );
+  return customers;
 }

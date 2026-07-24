@@ -3,6 +3,7 @@ import { env } from "@movie-ticket-booking/env/server";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { afterSignupHook, beforeSignupHook } from "./authHooks";
+import { testUtils } from "better-auth/plugins";
 
 export function createAuth() {
   const prisma = createPrismaClient();
@@ -26,7 +27,7 @@ export function createAuth() {
         httpOnly: true,
       },
     },
-    plugins: [],
+    plugins: [...(process.env.NODE_ENV === "test" ? [testUtils()] : [])],
     hooks: {
       before: beforeSignupHook,
       after: afterSignupHook,
@@ -43,6 +44,13 @@ export function createAuth() {
         },
         isOnboarded: {
           type: "boolean",
+          required: false,
+          input: false,
+          returned: true,
+          defaultValue: false,
+        },
+        image: {
+          type: "string",
           required: false,
           input: false,
           returned: true,

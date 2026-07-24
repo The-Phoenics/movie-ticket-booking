@@ -1,5 +1,4 @@
 import prisma from "@movie-ticket-booking/db";
-import { createSeats } from "./seat.seed";
 import { createShow } from "./show.seed";
 
 export async function createShowSeats({
@@ -17,7 +16,11 @@ export async function createShowSeats({
       })
     : await createShow();
 
-  const seats = await createSeats(theatreId ?? show.theatreId);
+  const seats = await prisma.seat.findMany({
+    where: {
+      theatreId: theatreId ?? show.theatreId,
+    },
+  });
 
   await prisma.showSeat.createMany({
     data: seats.map((seat) => ({
