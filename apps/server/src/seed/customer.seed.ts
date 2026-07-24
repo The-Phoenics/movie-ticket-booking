@@ -53,8 +53,8 @@ export async function createUsers(count: number = 20): Promise<TestCustomer[]> {
           name: savedUser.name,
         },
       });
-
-      return { user, headers, customer, session, sessionToken: token };
+      const authTokenValue = cookies[0]?.name + "=" + cookies[0]?.value;
+      return { user, headers, customer, session, sessionToken: authTokenValue };
     }),
   );
   return customers;

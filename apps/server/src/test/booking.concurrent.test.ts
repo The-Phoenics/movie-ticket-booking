@@ -3,27 +3,26 @@ import prisma from "@movie-ticket-booking/db";
 import redisClient from "@movie-ticket-booking/cache";
 import { createBookingFixture } from "@/seed/bookingFixture.seed";
 import { createUsers } from "@/seed/customer.seed";
-// import { clearDatabase } from "../helpers/database";
 
 const BASE_URL = "http://localhost:3000";
 
+const TEST_USERS_COUNT = 1000;
+
 describe("Concurrent Seat Reservation", () => {
   beforeEach(async () => {
-    // await clearDatabase();
     await redisClient.flushall();
   });
 
   it("should reserve a seat for only one customer", async () => {
     // ---------- Arrange ----------
-
     const fixture = await createBookingFixture({
       rows: 1,
       cols: 1,
     });
 
-    const users = await createUsers(100);
-    const userAuthHeaders = users.map((user) => {
-      return user.headers;
+    const users = await createUsers(TEST_USERS_COUNT);
+    const tokens = users.map((user) => {
+      return user.sessionToken;
     });
 
     if (!fixture.showSeat) {
@@ -33,33 +32,28 @@ describe("Concurrent Seat Reservation", () => {
     const url = `${BASE_URL}/movies/${fixture.movie.id}/${fixture.show.id}/reserve/${fixture.showSeat.id}`;
 
     // ---------- Act ----------
-
     const responses = await Promise.all(
-      userAuthHeaders.map((header) =>
-        fetch(url, {
+      tokens.map((token) => {
+        return fetch(url, {
           method: "POST",
+          credentials: "include",
           headers: {
-            ...header,
+            cookie: token,
           },
-        }),
-      ),
+        });
+      }),
     );
 
-    // console.log("res", responses);
-
     const bodies = await Promise.all(responses.map((r) => r.json()));
-    // console.log(bodies);
 
     // ---------- Assert Responses ----------
-
     const success = responses.filter((r) => r.status === 201);
     expect(success).toHaveLength(1);
 
     const failed = responses.filter((r) => r.status === 200 || r.status === 409);
-    expect(failed).toHaveLength(99);
+    expect(failed).toHaveLength(TEST_USERS_COUNT - 1);
 
     // ---------- Assert Database ----------
-
     const reservations = await prisma.showSeatReservation.findMany({
       where: {
         showSeatId: fixture.showSeat.id,
@@ -99,5 +93,5 @@ describe("Concurrent Seat Reservation", () => {
     });
 
     expect(duplicateReservations).toHaveLength(0);
-  }, 40000);
+  }, 400000);
 });
